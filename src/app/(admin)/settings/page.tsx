@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   AppWindow,
   Bell,
+  Building2,
   ChevronRight,
   CreditCard,
   FileText,
@@ -37,11 +38,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { UsersSection } from "@/components/settings/users-section";
+import { BranchesSection } from "@/components/settings/branches-section";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 
-const settingsNav = [
-  { label: "General", icon: Store, active: true },
+type SectionKey = "general" | "users" | "branches";
+
+const settingsNav: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  key?: SectionKey;
+}[] = [
+  { label: "General", icon: Store, key: "general" },
+  { label: "Users", icon: Users, key: "users" },
+  { label: "Branches", icon: Building2, key: "branches" },
   { label: "Plan", icon: Package },
   { label: "Payments", icon: CreditCard },
   { label: "Checkout", icon: ShoppingCart },
@@ -56,14 +67,24 @@ const settingsNav = [
   { label: "Languages", icon: Languages },
   { label: "Customer privacy", icon: ShieldCheck },
   { label: "Policies", icon: FileText },
-  { label: "Users", icon: Users },
   { label: "Billing", icon: Landmark },
 ];
+
+const sectionMeta: Record<
+  SectionKey,
+  { title: string; icon: React.ComponentType<{ className?: string }> }
+> = {
+  general: { title: "General", icon: Store },
+  users: { title: "Users", icon: Users },
+  branches: { title: "Branches", icon: Building2 },
+};
 
 export default function SettingsPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [query, setQuery] = React.useState("");
+  const [section, setSection] = React.useState<SectionKey>("general");
+  const SectionIcon = sectionMeta[section].icon;
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -108,13 +129,14 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
-            <nav className="max-h-[52vh] overflow-y-auto px-2 pb-2">
+            <nav className="max-h-[62vh] overflow-y-auto px-2 pb-2">
               {visibleNav.map((item) => (
                 <button
                   key={item.label}
+                  onClick={() => item.key && setSection(item.key)}
                   className={cn(
                     "flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-sm font-medium transition-colors duration-150",
-                    item.active
+                    item.key === section
                       ? "bg-[#f1f1f1] text-foreground"
                       : "text-foreground/80 hover:bg-[#f1f1f1]/70"
                   )}

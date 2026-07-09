@@ -14,7 +14,7 @@ export default function AdminLayout({
       <SidebarProvider className="bg-[linear-gradient(to_bottom,#1a1a1a_calc(3.5rem+12px),var(--sidebar)_calc(3.5rem+12px))] pt-14">
         <TopBar />
         <AppSidebar />
-        <SidebarInset className="bg-background md:rounded-tr-xl">
+        <SidebarInset className="min-w-0 bg-background md:rounded-tr-xl">
           <main className="w-full flex-1 px-4 py-6 md:px-6">{children}</main>
         </SidebarInset>
       </SidebarProvider>

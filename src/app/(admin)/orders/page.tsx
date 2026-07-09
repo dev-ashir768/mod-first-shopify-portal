@@ -107,7 +107,7 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Orders</h1>
         <div className="flex gap-2">
           <Button variant="outline">

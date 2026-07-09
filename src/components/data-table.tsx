@@ -38,6 +38,13 @@ function humanizeColumnId(id: string) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
+interface ServerPagination {
+  pageIndex: number;
+  pageCount: number;
+  total: number;
+  onPageChange: (pageIndex: number) => void;
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -45,6 +52,9 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string;
   onRowClick?: (row: TData) => void;
   toolbar?: React.ReactNode;
+  /** Pass when rows are fetched from an API page by page. */
+  serverPagination?: ServerPagination;
+  loading?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -54,6 +64,8 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Search…",
   onRowClick,
   toolbar,
+  serverPagination,
+  loading = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -66,7 +78,7 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(serverPagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -122,7 +134,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="rounded-lg bg-card ring-1 ring-black/8">
-        <div className="overflow-x-auto md:overflow-x-visible">
+        <div className="overflow-x-auto lg:overflow-x-visible">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -130,7 +142,7 @@ export function DataTable<TData, TValue>({
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="h-10 bg-[#f7f7f7] text-xs font-medium text-muted-foreground first:rounded-tl-lg last:rounded-tr-lg md:sticky md:top-14 md:z-10"
+                      className="h-10 bg-[#f7f7f7] text-xs font-medium text-muted-foreground first:rounded-tl-lg last:rounded-tr-lg lg:sticky lg:top-14 lg:z-10"
                     >
                       {header.isPlaceholder
                         ? null
@@ -141,7 +153,17 @@ export function DataTable<TData, TValue>({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {columns.map((_, j) => (
+                      <TableCell key={j} className="py-3">
+                        <div className="h-4 w-full max-w-32 animate-pulse rounded bg-muted" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
@@ -175,27 +197,43 @@ export function DataTable<TData, TValue>({
         <p className="text-xs text-muted-foreground">
           {selectedCount > 0
             ? `${selectedCount} of ${table.getFilteredRowModel().rows.length} selected`
-            : `${table.getFilteredRowModel().rows.length} results`}
+            : `${serverPagination?.total ?? table.getFilteredRowModel().rows.length} results`}
         </p>
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
             size="icon"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() =>
+              serverPagination
+                ? serverPagination.onPageChange(serverPagination.pageIndex - 1)
+                : table.previousPage()
+            }
+            disabled={
+              serverPagination
+                ? serverPagination.pageIndex <= 0 || loading
+                : !table.getCanPreviousPage()
+            }
             aria-label="Previous page"
           >
             <ChevronLeft className="size-4" />
           </Button>
           <span className="px-2 text-xs text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {Math.max(table.getPageCount(), 1)}
+            Page {(serverPagination?.pageIndex ?? table.getState().pagination.pageIndex) + 1} of{" "}
+            {Math.max(serverPagination?.pageCount ?? table.getPageCount(), 1)}
           </span>
           <Button
             variant="outline"
             size="icon"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() =>
+              serverPagination
+                ? serverPagination.onPageChange(serverPagination.pageIndex + 1)
+                : table.nextPage()
+            }
+            disabled={
+              serverPagination
+                ? serverPagination.pageIndex >= serverPagination.pageCount - 1 || loading
+                : !table.getCanNextPage()
+            }
             aria-label="Next page"
           >
             <ChevronRight className="size-4" />

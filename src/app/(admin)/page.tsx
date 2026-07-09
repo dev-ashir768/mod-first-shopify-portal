@@ -33,7 +33,7 @@ export default function HomePage() {
       </div>
 
       <Card className="py-0">
-        <CardContent className="grid grid-cols-2 divide-y p-0 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+        <CardContent className="grid grid-cols-2 p-0 lg:grid-cols-4 lg:divide-x">
           {kpis.map((kpi) => (
             <div key={kpi.label} className="p-4">
               <p className="text-xs font-medium text-muted-foreground underline decoration-dotted underline-offset-4">
@@ -78,10 +78,10 @@ export default function HomePage() {
               <li key={order.id}>
                 <Link
                   href="/orders"
-                  className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-muted/60"
+                  className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 transition-colors duration-150 hover:bg-muted/60"
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">
+                  <div className="min-w-0 basis-full sm:flex-1 sm:basis-auto">
+                    <p className="truncate text-sm font-medium">
                       {order.orderNumber} · {order.customer}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
@@ -90,7 +90,7 @@ export default function HomePage() {
                   </div>
                   <StatusBadge status={order.paymentStatus} />
                   <StatusBadge status={order.fulfillmentStatus} />
-                  <span className="w-20 text-right text-sm font-medium">
+                  <span className="ml-auto text-right text-sm font-medium sm:ml-0 sm:w-20">
                     {currency(order.total)}
                   </span>
                 </Link>
