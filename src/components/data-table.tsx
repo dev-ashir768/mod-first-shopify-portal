@@ -1,0 +1,207 @@
+"use client";
+
+import * as React from "react";
+import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+/** "fulfillmentStatus" → "Fulfillment status" */
+function humanizeColumnId(id: string) {
+  const spaced = id.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  searchKey?: string;
+  searchPlaceholder?: string;
+  onRowClick?: (row: TData) => void;
+  toolbar?: React.ReactNode;
+}
+
+export function DataTable<TData, TValue>({
+  columns,
+  data,
+  searchKey,
+  searchPlaceholder = "Search…",
+  onRowClick,
+  toolbar,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    initialState: { pagination: { pageSize: 10 } },
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
+  });
+
+  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        {searchKey && (
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder}
+              value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
+              onChange={(e) =>
+                table.getColumn(searchKey)?.setFilterValue(e.target.value)
+              }
+              className="bg-card pl-8"
+            />
+          </div>
+        )}
+        {toolbar}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="outline" className="ml-auto">
+                <SlidersHorizontal className="size-4" />
+                <span className="hidden sm:inline">View</span>
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="w-52 p-1">
+            {table
+              .getAllColumns()
+              .filter((c) => c.getCanHide())
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="py-1.5 pl-2"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {humanizeColumnId(column.id)}
+                </DropdownMenuCheckboxItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="rounded-lg bg-card ring-1 ring-black/8">
+        <div className="overflow-x-auto md:overflow-visible">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="h-10 bg-[#f7f7f7] text-xs font-medium text-muted-foreground first:rounded-tl-lg last:rounded-tr-lg md:sticky md:top-14 md:z-10"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => onRowClick?.(row.original)}
+                    className={onRowClick ? "cursor-pointer" : undefined}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-2.5">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">
+          {selectedCount > 0
+            ? `${selectedCount} of ${table.getFilteredRowModel().rows.length} selected`
+            : `${table.getFilteredRowModel().rows.length} results`}
+        </p>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            aria-label="Previous page"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="px-2 text-xs text-muted-foreground">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {Math.max(table.getPageCount(), 1)}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            aria-label="Next page"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
