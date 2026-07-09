@@ -122,7 +122,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className="rounded-lg bg-card ring-1 ring-black/8">
-        <div className="overflow-x-auto md:overflow-visible">
+        <div className="overflow-x-auto md:overflow-x-visible">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

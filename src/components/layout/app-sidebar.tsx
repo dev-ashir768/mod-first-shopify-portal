@@ -86,7 +86,7 @@ export function AppSidebar() {
       className="top-14 !h-[calc(100svh-3.5rem)] bg-[#1a1a1a] **:data-[slot=sidebar-inner]:rounded-tl-xl"
     >
       <SidebarContent>
-        <SidebarGroup>
+        <SidebarGroup className="pt-3">
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map((item) => {
