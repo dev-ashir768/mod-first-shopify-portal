@@ -1,0 +1,70 @@
+import { api } from "@/lib/api";
+
+/**
+ * Upload APIs — multipart/form-data.
+ * POST upload/image?folder=X  (field: file)
+ * POST upload/images?folder=X (field: files)
+ * POST upload/video?folder=X  (field: file)
+ * DELETE upload/:filename?folder=X
+ */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Json = Record<string, any>;
+
+/** Find the uploaded file URL wherever the API puts it. */
+function pickUrl(data: Json): string {
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const candidate =
+    p.url ??
+    p.path ??
+    p.file_url ??
+    p.fileUrl ??
+    p.location ??
+    p.file?.url ??
+    p.file?.path ??
+    (Array.isArray(p.files) ? p.files[0]?.url ?? p.files[0]?.path : undefined) ??
+    (Array.isArray(p) ? p[0]?.url ?? p[0]?.path : undefined);
+  if (!candidate) throw new Error("Upload succeeded but no file URL in response");
+  return candidate as string;
+}
+
+async function uploadSingle(
+  endpoint: "upload/image" | "upload/video",
+  file: File,
+  folder: string
+): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await api.post(`${endpoint}?folder=${encodeURIComponent(folder)}`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
+  });
+  return pickUrl(data);
+}
+
+export const uploadImage = (file: File, folder = "general") =>
+  uploadSingle("upload/image", file, folder);
+
+export const uploadVideo = (file: File, folder = "general") =>
+  uploadSingle("upload/video", file, folder);
+
+export async function uploadImages(files: File[], folder = "general"): Promise<string[]> {
+  const form = new FormData();
+  files.forEach((f) => form.append("files", f));
+  const { data } = await api.post(
+    `upload/images?folder=${encodeURIComponent(folder)}`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" }, timeout: 300000 }
+  );
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const list = (Array.isArray(p) ? p : p.files ?? p.urls ?? []) as Json[];
+  return list
+    .map((f) => (typeof f === "string" ? f : f?.url ?? f?.path))
+    .filter(Boolean) as string[];
+}
+
+export async function deleteFile(filename: string, folder?: string): Promise<string> {
+  const qs = folder ? `?folder=${encodeURIComponent(folder)}` : "";
+  const { data } = await api.delete(`upload/${encodeURIComponent(filename)}${qs}`);
+  return (data?.message as string) ?? "File deleted.";
+}

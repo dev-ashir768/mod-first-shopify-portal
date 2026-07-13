@@ -91,6 +91,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col gap-3">
+      {(searchKey || toolbar) && (
       <div className="flex items-center gap-2">
         {searchKey && (
           <div className="relative flex-1 max-w-sm">
@@ -132,6 +133,7 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      )}
 
       <div className="rounded-lg bg-card ring-1 ring-black/8">
         <div className="overflow-x-auto lg:overflow-x-visible">
@@ -197,7 +199,7 @@ export function DataTable<TData, TValue>({
         <p className="text-xs text-muted-foreground">
           {selectedCount > 0
             ? `${selectedCount} of ${table.getFilteredRowModel().rows.length} selected`
-            : `${serverPagination?.total ?? table.getFilteredRowModel().rows.length} results`}
+            : `${serverPagination?.total ?? table.getFilteredRowModel().rows.length} result${(serverPagination?.total ?? table.getFilteredRowModel().rows.length) === 1 ? "" : "s"}`}
         </p>
         <div className="flex items-center gap-1">
           <Button

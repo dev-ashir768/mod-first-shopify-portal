@@ -12,9 +12,12 @@ import {
   Globe,
   Landmark,
   Languages,
+  ListTree,
   MapPin,
   Package,
+  Palette,
   Percent,
+  Ruler,
   Search,
   Share2,
   ShieldCheck,
@@ -40,10 +43,21 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { UsersSection } from "@/components/settings/users-section";
 import { BranchesSection } from "@/components/settings/branches-section";
+import { SizesSection } from "@/components/settings/sizes-section";
+import { ColorsSection } from "@/components/settings/colors-section";
+import { MenusSection } from "@/components/settings/menus-section";
+import { MenuRightsSection } from "@/components/settings/menu-rights-section";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 
-type SectionKey = "general" | "users" | "branches";
+type SectionKey =
+  | "general"
+  | "users"
+  | "branches"
+  | "sizes"
+  | "colors"
+  | "menus"
+  | "menu-rights";
 
 const settingsNav: {
   label: string;
@@ -53,6 +67,10 @@ const settingsNav: {
   { label: "General", icon: Store, key: "general" },
   { label: "Users", icon: Users, key: "users" },
   { label: "Branches", icon: Building2, key: "branches" },
+  { label: "Sizes", icon: Ruler, key: "sizes" },
+  { label: "Colors", icon: Palette, key: "colors" },
+  { label: "Menus", icon: ListTree, key: "menus" },
+  { label: "Menu rights", icon: ShieldCheck, key: "menu-rights" },
   { label: "Plan", icon: Package },
   { label: "Payments", icon: CreditCard },
   { label: "Checkout", icon: ShoppingCart },
@@ -77,6 +95,10 @@ const sectionMeta: Record<
   general: { title: "General", icon: Store },
   users: { title: "Users", icon: Users },
   branches: { title: "Branches", icon: Building2 },
+  sizes: { title: "Sizes", icon: Ruler },
+  colors: { title: "Colors", icon: Palette },
+  menus: { title: "Menus", icon: ListTree },
+  "menu-rights": { title: "Menu rights", icon: ShieldCheck },
 };
 
 export default function SettingsPage() {
@@ -169,13 +191,39 @@ export default function SettingsPage() {
             </div>
           </aside>
 
-          {/* General settings content */}
+          {/* Settings content */}
           <div className="min-w-0 flex-1 pb-16">
-            <div className="mb-4 flex items-center gap-2">
-              <Store className="size-5" />
-              <h1 className="text-xl font-bold">General</h1>
+            {/* Mobile section switcher */}
+            <div className="mb-4 flex gap-2 overflow-x-auto md:hidden">
+              {(Object.keys(sectionMeta) as SectionKey[]).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => setSection(key)}
+                  className={cn(
+                    "shrink-0 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors duration-150",
+                    key === section
+                      ? "bg-[#e3e3e3] text-foreground"
+                      : "bg-card text-foreground/80 ring-1 ring-black/8"
+                  )}
+                >
+                  {sectionMeta[key].title}
+                </button>
+              ))}
             </div>
 
+            <div className="mb-4 flex items-center gap-2">
+              <SectionIcon className="size-5" />
+              <h1 className="text-xl font-bold">{sectionMeta[section].title}</h1>
+            </div>
+
+            {section === "users" && <UsersSection />}
+            {section === "branches" && <BranchesSection />}
+            {section === "sizes" && <SizesSection />}
+            {section === "colors" && <ColorsSection />}
+            {section === "menus" && <MenusSection />}
+            {section === "menu-rights" && <MenuRightsSection />}
+
+            {section === "general" && (
             <div className="flex flex-col gap-4">
               <Card className="gap-0 py-0">
                 <div className="px-4 py-3">
@@ -230,7 +278,7 @@ export default function SettingsPage() {
 
                   <div className="space-y-1.5">
                     <Label>Backup region</Label>
-                    <Select defaultValue="us">
+                    <Select items={{ us: "United States", ca: "Canada", uk: "United Kingdom", pk: "Pakistan" }} defaultValue="us">
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
@@ -249,7 +297,7 @@ export default function SettingsPage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <Label>Unit system</Label>
-                      <Select defaultValue="imperial">
+                      <Select items={{ imperial: "Imperial system", metric: "Metric system" }} defaultValue="imperial">
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -261,7 +309,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Default weight unit</Label>
-                      <Select defaultValue="lb">
+                      <Select items={{ lb: "Pound (lb)", kg: "Kilogram (kg)", oz: "Ounce (oz)", g: "Gram (g)" }} defaultValue="lb">
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
@@ -277,7 +325,7 @@ export default function SettingsPage() {
 
                   <div className="space-y-1.5">
                     <Label>Time zone</Label>
-                    <Select defaultValue="est">
+                    <Select items={{ est: "(GMT-05:00) Eastern Time (US & Canada)", cst: "(GMT-06:00) Central Time (US & Canada)", pst: "(GMT-08:00) Pacific Time (US & Canada)", pkt: "(GMT+05:00) Pakistan Standard Time" }} defaultValue="est">
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
@@ -329,6 +377,7 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
             </div>
+            )}
           </div>
         </div>
       </div>

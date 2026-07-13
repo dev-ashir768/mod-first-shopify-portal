@@ -3,7 +3,21 @@
 import * as React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Search } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
@@ -19,9 +33,12 @@ import { DataTable } from "@/components/data-table";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { StatusBadge } from "@/components/status-badge";
 import { apiErrorMessage } from "@/lib/auth-api";
-import { listBranches, type BranchRow } from "@/lib/admin-api";
+import { createBranch, listBranches, updateBranch, type BranchRow } from "@/lib/admin-api";
 
 const PAGE_SIZE = 10;
+
+const STATUS_ITEMS = { all: "All statuses", active: "Active", inactive: "Inactive" };
+
 
 const columns: ColumnDef<BranchRow>[] = [
   {
@@ -112,6 +129,9 @@ export function BranchesSection() {
   const [city, setCity] = React.useState("");
   const [status, setStatus] = React.useState("all");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<BranchRow | null>(null);
+  const [refreshKey, setRefreshKey] = React.useState(0);
 
   const [debounced, setDebounced] = React.useState({ search: "", city: "" });
   React.useEffect(() => {
@@ -151,7 +171,7 @@ export function BranchesSection() {
     return () => {
       cancelled = true;
     };
-  }, [page, debounced, status, dateRange]);
+  }, [page, debounced, status, dateRange, refreshKey]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -171,7 +191,7 @@ export function BranchesSection() {
           placeholder="City"
           className="w-32 bg-card"
         />
-        <Select value={status} onValueChange={(v) => setStatus(v as string)}>
+        <Select items={STATUS_ITEMS} value={status} onValueChange={(v) => setStatus(v as string)}>
           <SelectTrigger className="min-w-32 bg-card">
             <SelectValue />
           </SelectTrigger>
@@ -182,12 +202,24 @@ export function BranchesSection() {
           </SelectContent>
         </Select>
         <DateRangePicker value={dateRange} onChange={setDateRange} />
+        <Button className="ml-auto" onClick={() => { setEditing(null); setDialogOpen(true); }}>
+          <Plus className="size-4" />
+          Add branch
+        </Button>
       </div>
+
+      <BranchDialog
+        editing={editing}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={() => setRefreshKey((k) => k + 1)}
+      />
 
       <DataTable
         columns={columns}
         data={rows}
         loading={loading}
+        onRowClick={(row) => { setEditing(row); setDialogOpen(true); }}
         serverPagination={{
           pageIndex: page,
           pageCount,
@@ -196,5 +228,147 @@ export function BranchesSection() {
         }}
       />
     </div>
+  );
+}
+
+const branchSchema = z.object({
+  name: z.string().min(1, "Branch name is required"),
+  code: z
+    .string()
+    .min(1, "Code is required")
+    .regex(/^[A-Z0-9_-]+$/, "Uppercase letters, numbers, _ and - only"),
+  address_line_1: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().optional(),
+  postal_code: z.string().optional(),
+  country: z.string().min(1, "Country is required"),
+  phone: z.string().optional(),
+  email: z.string().email("Enter a valid email").optional().or(z.literal("")),
+  manager_name: z.string().optional(),
+});
+type BranchValues = z.infer<typeof branchSchema>;
+
+function BranchDialog({
+  editing,
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  editing: BranchRow | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: () => void;
+}) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<BranchValues>({
+    resolver: zodResolver(branchSchema),
+    defaultValues: {
+      name: "",
+      code: "",
+      address_line_1: "",
+      city: "",
+      state: "",
+      postal_code: "",
+      country: "United States",
+      phone: "",
+      email: "",
+      manager_name: "",
+    },
+  });
+
+  React.useEffect(() => {
+    if (open) {
+      const e = editing as (BranchRow & { address_line_1?: string; postal_code?: string }) | null;
+      reset({
+        name: e?.name ?? "",
+        code: e?.code ?? "",
+        address_line_1: e?.address_line_1 ?? "",
+        city: e?.city ?? "",
+        state: e?.state ?? "",
+        postal_code: e?.postal_code ?? "",
+        country: e?.country ?? "United States",
+        phone: e?.phone ?? "",
+        email: e?.email ?? "",
+        manager_name: e?.manager_name ?? "",
+      });
+    }
+  }, [open, editing, reset]);
+
+  const onSubmit = async (values: BranchValues) => {
+    try {
+      const message = editing
+        ? await updateBranch(editing.id, values)
+        : await createBranch({ ...values, is_active: true });
+      toast.success(message);
+      onOpenChange(false);
+      onCreated();
+    } catch (error) {
+      toast.error(
+        apiErrorMessage(error, `Couldn't ${editing ? "update" : "create"} the branch.`)
+      );
+    }
+  };
+
+  const field = (
+    id: keyof BranchValues,
+    label: string,
+    placeholder: string
+  ) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={`branch-${id}`}>{label}</Label>
+      <Input
+        id={`branch-${id}`}
+        placeholder={placeholder}
+        aria-invalid={!!errors[id]}
+        {...register(id)}
+      />
+      {errors[id] && (
+        <p className="text-sm text-destructive">{errors[id]?.message}</p>
+      )}
+    </div>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{editing ? "Edit branch" : "Add branch"}</DialogTitle>
+          <DialogDescription>
+            {editing ? `Update ${editing.name}.` : "Create a new store branch."}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {field("name", "Branch name", "Hyattsville Main Branch")}
+            {field("code", "Code", "HYA001")}
+          </div>
+          {field("address_line_1", "Address", "1234 Baltimore Ave")}
+          <div className="grid gap-3 sm:grid-cols-3">
+            {field("city", "City", "Hyattsville")}
+            {field("state", "State", "MD")}
+            {field("postal_code", "Postal code", "20782")}
+          </div>
+          {field("country", "Country", "United States")}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {field("phone", "Phone", "+1 (240) 555-0123")}
+            {field("email", "Email", "branch@store.com")}
+          </div>
+          {field("manager_name", "Manager name", "Ammar Ali")}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+              {editing ? "Save changes" : "Save branch"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

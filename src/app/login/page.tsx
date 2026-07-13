@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { apiErrorMessage, login as loginRequest, sendOtp } from "@/lib/auth-api";
+import { apiErrorMessage, login as loginRequest } from "@/lib/auth-api";
 import { loginSchema, type LoginValues } from "@/lib/validations";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -53,12 +53,7 @@ export default function LoginPage() {
         return;
       }
 
-      // No token in the response → the API wants OTP verification first.
-      try {
-        await sendOtp(values.email);
-      } catch {
-        // Login itself may have already sent the OTP — continue either way.
-      }
+      // No token in the response → backend has already emailed an OTP on login.
       toast.info(result.message || "Enter the code we emailed you.");
       router.push(`/login/verify-otp?email=${encodeURIComponent(values.email)}`);
     } catch (error) {
