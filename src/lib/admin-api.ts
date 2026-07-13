@@ -303,9 +303,180 @@ export const createSubscriber = (body: Json) =>
 export const updateSubscriber = (id: number | string, body: Json) =>
   updateRecord(`newsletters/subscribers/${id}`, body, "Subscriber updated.");
 
+export const createMenu = (body: Json) =>
+  createRecord("menus", body, "Menu created.");
+export const updateMenu = (id: number | string, body: Json) =>
+  updateRecord(`menus/${id}`, body, "Menu updated.");
+
+export const createMenuRight = (body: Json) =>
+  createRecord("menu-rights", body, "Menu right created.");
+export const updateMenuRight = (id: number | string, body: Json) =>
+  updateRecord(`menu-rights/${id}`, body, "Menu right updated.");
+
 export async function listMenuRights(
   params: ListParams
 ): Promise<ListResult<MenuRightRow>> {
   const { data } = await api.post("menu-rights/list", buildBody(params));
   return parseList<MenuRightRow>(data, params.limit);
 }
+
+// ─── Products ────────────────────────────────────────────────────────────────
+
+export const PRODUCT_STATUSES = ["active", "draft", "archived"] as const;
+export const WEIGHT_UNITS = ["kg", "g", "lb", "oz"] as const;
+
+export interface ProductImageRow {
+  id?: number | string;
+  url: string;
+  alt?: string | null;
+  sort_order?: number;
+  is_featured?: boolean;
+}
+
+export interface ProductVariantRow {
+  id?: number | string;
+  title: string;
+  sku?: string | null;
+  barcode?: string | null;
+  price?: number | null;
+  compare_at_price?: number | null;
+  quantity?: number;
+  is_active?: boolean;
+}
+
+export interface ProductFaqRow {
+  id?: number | string;
+  question: string;
+  answer: string;
+  sort_order?: number;
+}
+
+export interface ProductRow {
+  id: number | string;
+  title: string;
+  slug?: string;
+  status?: "active" | "draft" | "archived";
+  vendor?: string | null;
+  category?: string | null;
+  price?: number | null;
+  quantity?: number;
+  variants_count?: number;
+  featured_image?: string | null;
+  is_active?: boolean;
+  created_at?: string;
+}
+
+export interface ProductDetailRow extends ProductRow {
+  description?: string | null;
+  compare_at_price?: number | null;
+  cost_per_item?: number | null;
+  sku?: string | null;
+  barcode?: string | null;
+  track_quantity?: boolean;
+  weight?: number | null;
+  weight_unit?: string;
+  requires_shipping?: boolean;
+  tags?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  images?: ProductImageRow[];
+  variants?: ProductVariantRow[];
+  faqs?: ProductFaqRow[];
+}
+
+export async function listProducts(
+  params: ListParams
+): Promise<ListResult<ProductRow>> {
+  const { data } = await api.post("products/list", buildBody(params));
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const rows: ProductRow[] = Array.isArray(p)
+    ? p
+    : p.rows ?? p.items ?? p.products ?? p.list ?? p.data ?? [];
+  const total: number =
+    p.total ?? p.count ?? p.totalRecords ?? p.pagination?.total ?? rows.length;
+  const totalPages: number =
+    p.totalPages ??
+    p.pagination?.totalPages ??
+    Math.max(1, Math.ceil(total / params.limit));
+  return { rows, total, totalPages };
+}
+
+export async function getProduct(id: number | string): Promise<ProductDetailRow> {
+  const { data } = await api.get(`products/${id}`);
+  return data?.payload ?? data?.data ?? data;
+}
+
+export async function createProduct(
+  body: Json
+): Promise<{ id: number | string; message: string }> {
+  const { data } = await api.post("products", body);
+  const p: Json = data?.payload ?? data?.data ?? {};
+  const id = p.id ?? p._id ?? data?.id;
+  return { id, message: (data?.message as string) ?? "Product created." };
+}
+
+export const updateProduct = (id: number | string, body: Json) =>
+  updateRecord(`products/${id}`, body, "Product updated.");
+
+// ─── Product Categories ───────────────────────────────────────────────────────
+
+export interface ProductCategoryRow {
+  id: number | string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  parent_id?: number | null;
+  parent?: { name?: string } | null;
+  is_active?: boolean;
+  created_at?: string;
+}
+
+export async function listProductCategories(
+  params: ListParams
+): Promise<ListResult<ProductCategoryRow>> {
+  const { data } = await api.post("product-categories/list", buildBody(params));
+  return parseList<ProductCategoryRow>(data, params.limit);
+}
+
+export async function fetchAllProductCategories(): Promise<ProductCategoryRow[]> {
+  const { data } = await api.post("product-categories/list", { page: 1, limit: 200 });
+  const result = parseList<ProductCategoryRow>(data, 200);
+  return result.rows;
+}
+
+export const createProductCategory = (body: Json) =>
+  createRecord("product-categories", body, "Category created.");
+
+export const updateProductCategory = (id: number | string, body: Json) =>
+  updateRecord(`product-categories/${id}`, body, "Category updated.");
+
+export const REVIEW_STATUSES = ["pending", "approved", "rejected"] as const;
+
+export interface ReviewRow {
+  id: number | string;
+  product_id?: number | null;
+  product?: { name?: string; id?: number } | null;
+  user_id?: number | null;
+  user?: { full_name?: string; email?: string } | null;
+  reviewer_name?: string | null;
+  reviewer_email?: string | null;
+  rating: number;
+  title?: string | null;
+  body?: string | null;
+  status?: "pending" | "approved" | "rejected";
+  is_verified?: boolean;
+  is_active?: boolean;
+  created_at?: string;
+}
+
+export async function listReviews(
+  params: ListParams
+): Promise<ListResult<ReviewRow>> {
+  const { data } = await api.post("reviews/list", buildBody(params));
+  return parseList<ReviewRow>(data, params.limit);
+}
+
+export const createReview = (body: Json) =>
+  createRecord("reviews", body, "Review created.");
+export const updateReview = (id: number | string, body: Json) =>
+  updateRecord(`reviews/${id}`, body, "Review updated.");

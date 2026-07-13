@@ -1,0 +1,983 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import {
+  ArrowLeft,
+  ExternalLink,
+  GripVertical,
+  ImagePlus,
+  Loader2,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { apiErrorMessage } from "@/lib/auth-api";
+import { uploadImage } from "@/lib/upload-api";
+import {
+  createProduct,
+  updateProduct,
+  fetchAllProductCategories,
+  PRODUCT_STATUSES,
+  WEIGHT_UNITS,
+  type ProductDetailRow,
+  type ProductImageRow,
+  type ProductCategoryRow,
+} from "@/lib/admin-api";
+import { cn } from "@/lib/utils";
+
+// ─── Schema ──────────────────────────────────────────────────────────────────
+
+const variantSchema = z.object({
+  id: z.union([z.number(), z.string()]).optional(),
+  title: z.string().min(1, "Title required"),
+  sku: z.string().optional(),
+  barcode: z.string().optional(),
+  price: z.string().optional(),
+  compare_at_price: z.string().optional(),
+  quantity: z.string().optional(),
+});
+
+const faqSchema = z.object({
+  id: z.union([z.number(), z.string()]).optional(),
+  question: z.string().min(1, "Question required"),
+  answer: z.string().min(1, "Answer required"),
+});
+
+const productFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  status: z.enum(PRODUCT_STATUSES),
+  // Pricing
+  price: z.string().optional(),
+  compare_at_price: z.string().optional(),
+  cost_per_item: z.string().optional(),
+  // Inventory
+  sku: z.string().optional(),
+  barcode: z.string().optional(),
+  track_quantity: z.boolean(),
+  quantity: z.string().optional(),
+  // Shipping
+  requires_shipping: z.boolean(),
+  weight: z.string().optional(),
+  weight_unit: z.string(),
+  // Organization
+  vendor: z.string().optional(),
+  category: z.string().optional(),
+  tags: z.string().optional(),
+  // SEO
+  slug: z.string().optional(),
+  meta_title: z.string().optional(),
+  meta_description: z.string().optional(),
+  // Arrays
+  variants: z.array(variantSchema),
+  faqs: z.array(faqSchema),
+});
+
+type ProductFormValues = z.infer<typeof productFormSchema>;
+
+const parseNum = (v?: string) => {
+  if (!v || v.trim() === "") return undefined;
+  const n = parseFloat(v);
+  return isNaN(n) ? undefined : n;
+};
+const parseInt2 = (v?: string) => {
+  if (!v || v.trim() === "") return undefined;
+  const n = parseInt(v, 10);
+  return isNaN(n) ? undefined : n;
+};
+
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/[\s_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+// ─── Image Grid ──────────────────────────────────────────────────────────────
+
+function ProductImageGrid({
+  images,
+  onAdd,
+  onRemove,
+  uploading,
+}: {
+  images: ProductImageRow[];
+  onAdd: (files: FileList) => void;
+  onRemove: (idx: number) => void;
+  uploading: boolean;
+}) {
+  const ref = React.useRef<HTMLInputElement>(null);
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+      {images.map((img, i) => (
+        <div key={i} className="group relative aspect-square">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={img.url}
+            alt={img.alt ?? `Product image ${i + 1}`}
+            className="size-full rounded-lg border border-border object-cover"
+          />
+          {i === 0 && (
+            <Badge className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px]">
+              Featured
+            </Badge>
+          )}
+          <button
+            type="button"
+            onClick={() => onRemove(i)}
+            className="absolute top-1 right-1 hidden size-6 cursor-pointer items-center justify-center rounded-full bg-[#1a1a1a]/80 text-white transition-all duration-150 group-hover:flex"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
+      ))}
+
+      {/* Add tile */}
+      <button
+        type="button"
+        disabled={uploading}
+        onClick={() => ref.current?.click()}
+        className={cn(
+          "flex aspect-square cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input bg-muted/40 text-muted-foreground transition-colors duration-150 hover:border-ring hover:text-foreground",
+          "disabled:pointer-events-none disabled:opacity-50"
+        )}
+      >
+        {uploading ? (
+          <Loader2 className="size-5 animate-spin" />
+        ) : (
+          <>
+            <ImagePlus className="size-5" />
+            <span className="text-xs">Add</span>
+          </>
+        )}
+      </button>
+
+      <input
+        ref={ref}
+        type="file"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => e.target.files?.length && onAdd(e.target.files)}
+      />
+    </div>
+  );
+}
+
+// ─── Profit Calculator ────────────────────────────────────────────────────────
+
+function ProfitDisplay({ price, cost }: { price?: string; cost?: string }) {
+  const p = parseNum(price);
+  const c = parseNum(cost);
+  if (!p || !c || c <= 0) return null;
+  const profit = p - c;
+  const margin = (profit / p) * 100;
+  return (
+    <p className="mt-1 text-xs text-muted-foreground">
+      Profit:{" "}
+      <span className={profit >= 0 ? "text-[#29845a]" : "text-destructive"}>
+        ${profit.toFixed(2)}
+      </span>{" "}
+      · Margin:{" "}
+      <span className={margin >= 0 ? "text-[#29845a]" : "text-destructive"}>
+        {margin.toFixed(1)}%
+      </span>
+    </p>
+  );
+}
+
+// ─── Category Select ─────────────────────────────────────────────────────────
+
+function CategorySelect({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange: (v: string | null) => void;
+}) {
+  const [cats, setCats] = React.useState<ProductCategoryRow[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetchAllProductCategories()
+      .then(setCats)
+      .catch(() => setCats([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const items: Record<string, string> = Object.fromEntries([
+    ["", "No category"],
+    ...cats.map((c) => [String(c.id), c.name]),
+  ]);
+
+  // value stored as category id string; fall back to name match for existing products
+  const resolvedValue =
+    value
+      ? cats.find((c) => String(c.id) === value || c.name === value)
+        ? cats.find((c) => String(c.id) === value || c.name === value)
+            ? String(cats.find((c) => String(c.id) === value || c.name === value)!.id)
+            : value
+        : value
+      : "";
+
+  return (
+    <Select
+      items={items}
+      value={resolvedValue}
+      onValueChange={onChange}
+      disabled={loading}
+    >
+      <SelectTrigger className="w-full">
+        {loading ? (
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" /> Loading…
+          </span>
+        ) : (
+          <SelectValue placeholder="Select category" />
+        )}
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="">No category</SelectItem>
+        {cats.map((c) => (
+          <SelectItem key={c.id} value={String(c.id)}>
+            {c.parent?.name ? `${c.parent.name} › ${c.name}` : c.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+// ─── Section Card ─────────────────────────────────────────────────────────────
+
+function Section({
+  title,
+  children,
+  className,
+}: {
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Card className={cn("shadow-none", className)}>
+      {title && (
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{title}</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent className={cn(!title && "pt-6")}>{children}</CardContent>
+    </Card>
+  );
+}
+
+// ─── Main Form ────────────────────────────────────────────────────────────────
+
+export function ProductForm({ product }: { product?: ProductDetailRow }) {
+  const router = useRouter();
+  const isEdit = !!product;
+
+  // Images are managed outside react-hook-form
+  const [images, setImages] = React.useState<ProductImageRow[]>(
+    product?.images ?? []
+  );
+  const [imgUploading, setImgUploading] = React.useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    getFieldState,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<ProductFormValues>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: {
+      title: product?.title ?? "",
+      description: product?.description ?? "",
+      status: product?.status ?? "draft",
+      price: product?.price != null ? String(product.price) : "",
+      compare_at_price: product?.compare_at_price != null ? String(product.compare_at_price) : "",
+      cost_per_item: product?.cost_per_item != null ? String(product.cost_per_item) : "",
+      sku: product?.sku ?? "",
+      barcode: product?.barcode ?? "",
+      track_quantity: product?.track_quantity ?? true,
+      quantity: product?.quantity != null ? String(product.quantity) : "",
+      requires_shipping: product?.requires_shipping ?? true,
+      weight: product?.weight != null ? String(product.weight) : "",
+      weight_unit: product?.weight_unit ?? "kg",
+      vendor: product?.vendor ?? "",
+      category: product?.category ?? "",
+      tags: product?.tags ?? "",
+      slug: product?.slug ?? "",
+      meta_title: product?.meta_title ?? "",
+      meta_description: product?.meta_description ?? "",
+      variants: (product?.variants ?? []).map((v) => ({
+        id: v.id,
+        title: v.title,
+        sku: v.sku ?? "",
+        barcode: v.barcode ?? "",
+        price: v.price != null ? String(v.price) : "",
+        compare_at_price: v.compare_at_price != null ? String(v.compare_at_price) : "",
+        quantity: v.quantity != null ? String(v.quantity) : "",
+      })),
+      faqs: (product?.faqs ?? []).map((f) => ({
+        id: f.id,
+        question: f.question,
+        answer: f.answer,
+      })),
+    },
+  });
+
+  const {
+    fields: variantFields,
+    append: appendVariant,
+    remove: removeVariant,
+  } = useFieldArray({ control, name: "variants" });
+
+  const {
+    fields: faqFields,
+    append: appendFaq,
+    remove: removeFaq,
+  } = useFieldArray({ control, name: "faqs" });
+
+  // Auto-slug from title while creating
+  const title = watch("title");
+  const priceVal = watch("price");
+  const costVal = watch("cost_per_item");
+  const trackQty = watch("track_quantity");
+  const requiresShipping = watch("requires_shipping");
+
+  React.useEffect(() => {
+    if (!isEdit && !getFieldState("slug").isDirty) {
+      setValue("slug", slugify(title));
+    }
+  }, [title, isEdit, getFieldState, setValue]);
+
+  // Upload images
+  const handleImagesAdd = async (files: FileList) => {
+    setImgUploading(true);
+    const arr = Array.from(files);
+    try {
+      const urls = await Promise.all(arr.map((f) => uploadImage(f, "products")));
+      setImages((prev) => [
+        ...prev,
+        ...urls.map((url, i) => ({
+          url,
+          alt: null,
+          sort_order: prev.length + i,
+          is_featured: prev.length === 0 && i === 0,
+        })),
+      ]);
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Image upload failed."));
+    } finally {
+      setImgUploading(false);
+    }
+  };
+
+  const onSubmit = async (values: ProductFormValues) => {
+    const body = {
+      title: values.title,
+      description: values.description || undefined,
+      status: values.status,
+      price: parseNum(values.price),
+      compare_at_price: parseNum(values.compare_at_price),
+      cost_per_item: parseNum(values.cost_per_item),
+      sku: values.sku || undefined,
+      barcode: values.barcode || undefined,
+      track_quantity: values.track_quantity,
+      quantity: parseInt2(values.quantity),
+      requires_shipping: values.requires_shipping,
+      weight: parseNum(values.weight),
+      weight_unit: values.weight_unit || undefined,
+      vendor: values.vendor || undefined,
+      category_id: values.category ? Number(values.category) || undefined : undefined,
+      category: values.category || undefined,
+      tags: values.tags || undefined,
+      slug: values.slug || undefined,
+      meta_title: values.meta_title || undefined,
+      meta_description: values.meta_description || undefined,
+      images: images.map((img, i) => ({
+        ...img,
+        sort_order: i,
+        is_featured: i === 0,
+      })),
+      variants: values.variants.map((v) => ({
+        ...(v.id ? { id: v.id } : {}),
+        title: v.title,
+        sku: v.sku || undefined,
+        barcode: v.barcode || undefined,
+        price: parseNum(v.price),
+        compare_at_price: parseNum(v.compare_at_price),
+        quantity: parseInt2(v.quantity),
+      })),
+      faqs: values.faqs.map((f, i) => ({
+        ...(f.id ? { id: f.id } : {}),
+        question: f.question,
+        answer: f.answer,
+        sort_order: i,
+      })),
+      is_active: true,
+    };
+
+    try {
+      if (isEdit) {
+        const msg = await updateProduct(product.id, body);
+        toast.success(msg);
+      } else {
+        const { id, message } = await createProduct(body);
+        toast.success(message);
+        router.push(`/products/${id}`);
+      }
+    } catch (err) {
+      toast.error(
+        apiErrorMessage(err, `Couldn't ${isEdit ? "update" : "create"} the product.`)
+      );
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      {/* ── Top bar ── */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-8"
+          onClick={() => router.push("/products")}
+        >
+          <ArrowLeft className="size-4" />
+        </Button>
+        <h1 className="text-xl font-bold">
+          {isEdit ? product.title : "Add product"}
+        </h1>
+        <div className="ml-auto flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/products")}
+          >
+            Discard
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+            {isEdit ? "Save" : "Save product"}
+          </Button>
+        </div>
+      </div>
+
+      {/* ── Layout: left content + right sidebar ── */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+        {/* ── Left column ── */}
+        <div className="flex flex-1 flex-col gap-4 min-w-0">
+
+          {/* Title & Description */}
+          <Section>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="p-title">Title</Label>
+                <Input
+                  id="p-title"
+                  placeholder="Short sleeve t-shirt"
+                  aria-invalid={!!errors.title}
+                  {...register("title")}
+                />
+                {errors.title && (
+                  <p className="text-sm text-destructive">{errors.title.message}</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Description</Label>
+                <Controller
+                  control={control}
+                  name="description"
+                  render={({ field }) => (
+                    <RichTextEditor
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      placeholder="Describe your product…"
+                    />
+                  )}
+                />
+              </div>
+            </div>
+          </Section>
+
+          {/* Media */}
+          <Section title="Media">
+            {images.length === 0 && !imgUploading ? (
+              <div
+                className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-input bg-muted/40 py-10 text-muted-foreground transition-colors hover:border-ring hover:text-foreground"
+                onClick={() => {
+                  const inp = document.getElementById(
+                    "product-img-input"
+                  ) as HTMLInputElement;
+                  inp?.click();
+                }}
+              >
+                <ImagePlus className="size-8" />
+                <p className="text-sm font-medium">Click to add images</p>
+                <p className="text-xs">PNG, JPG, WebP supported</p>
+                <input
+                  id="product-img-input"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) =>
+                    e.target.files?.length && handleImagesAdd(e.target.files)
+                  }
+                />
+              </div>
+            ) : (
+              <ProductImageGrid
+                images={images}
+                onAdd={handleImagesAdd}
+                onRemove={(i) => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                uploading={imgUploading}
+              />
+            )}
+            {images.length > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                First image is the featured image. Click × to remove.
+              </p>
+            )}
+          </Section>
+
+          {/* Pricing */}
+          <Section title="Pricing">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="p-price">Price</Label>
+                <div className="relative">
+                  <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                    $
+                  </span>
+                  <Input id="p-price" type="number" step="0.01" min="0" placeholder="0.00" className="pl-6" {...register("price")} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="p-compare">Compare-at price</Label>
+                <div className="relative">
+                  <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <Input id="p-compare" type="number" step="0.01" min="0" placeholder="0.00" className="pl-6" {...register("compare_at_price")} />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="p-cost">Cost per item</Label>
+                <div className="relative">
+                  <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <Input id="p-cost" type="number" step="0.01" min="0" placeholder="0.00" className="pl-6" {...register("cost_per_item")} />
+                </div>
+              </div>
+            </div>
+            <ProfitDisplay price={priceVal} cost={costVal} />
+          </Section>
+
+          {/* Inventory */}
+          <Section title="Inventory">
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="p-sku">SKU (Stock Keeping Unit)</Label>
+                  <Input id="p-sku" placeholder="SKU-001" {...register("sku")} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="p-barcode">Barcode (ISBN, UPC, GTIN, etc.)</Label>
+                  <Input id="p-barcode" placeholder="012345678901" {...register("barcode")} />
+                </div>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Track quantity</p>
+                  <p className="text-xs text-muted-foreground">
+                    Manage stock levels for this product
+                  </p>
+                </div>
+                <Controller
+                  control={control}
+                  name="track_quantity"
+                  render={({ field }) => (
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={field.value}
+                      onClick={() => field.onChange(!field.value)}
+                      className={cn(
+                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        field.value ? "bg-primary" : "bg-input"
+                      )}
+                    >
+                      <span className={cn("pointer-events-none inline-block size-5 rounded-full bg-white shadow-lg transition-transform duration-200", field.value ? "translate-x-5" : "translate-x-0")} />
+                    </button>
+                  )}
+                />
+              </div>
+              {trackQty && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="p-qty">Quantity</Label>
+                  <Input id="p-qty" type="number" min="0" placeholder="0" className="max-w-36" {...register("quantity")} />
+                </div>
+              )}
+            </div>
+          </Section>
+
+          {/* Shipping */}
+          <Section title="Shipping">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">This is a physical product</p>
+                  <p className="text-xs text-muted-foreground">
+                    Customers will be prompted to enter a shipping address
+                  </p>
+                </div>
+                <Controller
+                  control={control}
+                  name="requires_shipping"
+                  render={({ field }) => (
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={field.value}
+                      onClick={() => field.onChange(!field.value)}
+                      className={cn(
+                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        field.value ? "bg-primary" : "bg-input"
+                      )}
+                    >
+                      <span className={cn("pointer-events-none inline-block size-5 rounded-full bg-white shadow-lg transition-transform duration-200", field.value ? "translate-x-5" : "translate-x-0")} />
+                    </button>
+                  )}
+                />
+              </div>
+              {requiresShipping && (
+                <>
+                  <Separator />
+                  <div className="space-y-1.5">
+                    <Label>Weight</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.0"
+                        className="max-w-28"
+                        {...register("weight")}
+                      />
+                      <Controller
+                        control={control}
+                        name="weight_unit"
+                        render={({ field }) => (
+                          <Select
+                            items={Object.fromEntries(WEIGHT_UNITS.map((u) => [u, u]))}
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {WEIGHT_UNITS.map((u) => (
+                                <SelectItem key={u} value={u}>{u}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </Section>
+
+          {/* Variants */}
+          <Section title="Variants">
+            <div className="space-y-3">
+              {variantFields.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No variants yet. Add variants for different options like size or colour.
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-lg border border-border">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/40">
+                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-8"></th>
+                        <th className="px-3 py-2 text-left font-medium">Variant</th>
+                        <th className="px-3 py-2 text-left font-medium">SKU</th>
+                        <th className="px-3 py-2 text-left font-medium">Price</th>
+                        <th className="px-3 py-2 text-left font-medium">Qty</th>
+                        <th className="px-3 py-2 w-8"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {variantFields.map((field, idx) => (
+                        <tr key={field.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                          <td className="px-2 py-2 text-muted-foreground">
+                            <GripVertical className="size-4 cursor-grab" />
+                          </td>
+                          <td className="px-2 py-2 min-w-28">
+                            <Input
+                              placeholder="S / Red"
+                              className="h-8 text-sm"
+                              aria-invalid={!!errors.variants?.[idx]?.title}
+                              {...register(`variants.${idx}.title`)}
+                            />
+                          </td>
+                          <td className="px-2 py-2 min-w-24">
+                            <Input
+                              placeholder="SKU"
+                              className="h-8 text-sm font-mono"
+                              {...register(`variants.${idx}.sku`)}
+                            />
+                          </td>
+                          <td className="px-2 py-2 min-w-24">
+                            <div className="relative">
+                              <span className="absolute top-1/2 left-2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                className="h-8 pl-5 text-sm"
+                                {...register(`variants.${idx}.price`)}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 min-w-20">
+                            <Input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              className="h-8 text-sm"
+                              {...register(`variants.${idx}.quantity`)}
+                            />
+                          </td>
+                          <td className="px-2 py-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => removeVariant(idx)}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => appendVariant({ title: "", sku: "", barcode: "", price: "", compare_at_price: "", quantity: "" })}
+              >
+                <Plus className="size-4" />
+                Add variant
+              </Button>
+            </div>
+          </Section>
+
+          {/* FAQ */}
+          <Section title="Frequently Asked Questions">
+            <div className="space-y-3">
+              {faqFields.map((field, idx) => (
+                <div key={field.id} className="rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Q{idx + 1}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeFaq(idx)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                  <Input
+                    placeholder="What is the return policy?"
+                    aria-invalid={!!errors.faqs?.[idx]?.question}
+                    {...register(`faqs.${idx}.question`)}
+                  />
+                  {errors.faqs?.[idx]?.question && (
+                    <p className="text-xs text-destructive">{errors.faqs[idx]?.question?.message}</p>
+                  )}
+                  <Textarea
+                    rows={2}
+                    placeholder="We accept returns within 30 days…"
+                    aria-invalid={!!errors.faqs?.[idx]?.answer}
+                    {...register(`faqs.${idx}.answer`)}
+                  />
+                  {errors.faqs?.[idx]?.answer && (
+                    <p className="text-xs text-destructive">{errors.faqs[idx]?.answer?.message}</p>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => appendFaq({ question: "", answer: "" })}
+              >
+                <Plus className="size-4" />
+                Add FAQ
+              </Button>
+            </div>
+          </Section>
+        </div>
+
+        {/* ── Right sidebar ── */}
+        <div className="flex flex-col gap-4 lg:w-64 lg:shrink-0">
+
+          {/* Status */}
+          <Section title="Status">
+            <Controller
+              control={control}
+              name="status"
+              render={({ field }) => (
+                <Select
+                  items={{ active: "Active", draft: "Draft", archived: "Archived" }}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRODUCT_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s.charAt(0).toUpperCase() + s.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </Section>
+
+          {/* Organization */}
+          <Section title="Organization">
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Category</Label>
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field }) => (
+                    <CategorySelect value={field.value} onChange={field.onChange} />
+                  )}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="p-vendor">Vendor</Label>
+                <Input id="p-vendor" placeholder="modeFirst" {...register("vendor")} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="p-tags">Tags</Label>
+                <Input id="p-tags" placeholder="t-shirt, custom, summer" {...register("tags")} />
+                <p className="text-xs text-muted-foreground">Comma-separated</p>
+              </div>
+            </div>
+          </Section>
+
+          {/* SEO */}
+          <Section title="Search engine listing">
+            <div className="space-y-3">
+              {/* Preview */}
+              <div className="rounded-lg bg-muted/40 p-3 text-xs">
+                <p className="text-[#1a0dab] dark:text-[#8ab4f8] font-medium truncate">
+                  {watch("meta_title") || watch("title") || "Product title"}
+                </p>
+                <p className="text-[#006621] dark:text-[#4db97e] truncate">
+                  yourstore.com/products/{watch("slug") || "product-handle"}
+                </p>
+                <p className="text-muted-foreground line-clamp-2 mt-0.5">
+                  {watch("meta_description") || "Product description will appear here in search results."}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="p-slug">URL handle</Label>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground shrink-0">/products/</span>
+                  <Input
+                    id="p-slug"
+                    placeholder="product-handle"
+                    className="font-mono text-xs"
+                    {...register("slug")}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="p-meta-title">Meta title</Label>
+                <Input id="p-meta-title" placeholder="Defaults to title" {...register("meta_title")} />
+                <p className="text-xs text-muted-foreground text-right">
+                  {watch("meta_title")?.length ?? 0}/70
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="p-meta-desc">Meta description</Label>
+                <Textarea
+                  id="p-meta-desc"
+                  rows={3}
+                  placeholder="Describe this product for search engines…"
+                  {...register("meta_description")}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {watch("meta_description")?.length ?? 0}/160
+                </p>
+              </div>
+            </div>
+          </Section>
+        </div>
+      </div>
+
+      {/* ── Bottom save bar ── */}
+      <div className="mt-6 flex justify-end gap-2 border-t border-border pt-4">
+        <Button type="button" variant="outline" onClick={() => router.push("/products")}>
+          Discard
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+          {isEdit ? "Save changes" : "Save product"}
+        </Button>
+      </div>
+    </form>
+  );
+}

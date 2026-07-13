@@ -3,10 +3,23 @@
 import * as React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Search } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -17,14 +30,22 @@ import {
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { apiErrorMessage } from "@/lib/auth-api";
-import { listMenus, MENU_LINK_TYPES, type MenuRow } from "@/lib/admin-api";
+import {
+  createMenu,
+  listMenus,
+  updateMenu,
+  MENU_LINK_TYPES,
+  type MenuRow,
+} from "@/lib/admin-api";
 
 const PAGE_SIZE = 10;
 
 const STATUS_ITEMS = { all: "All statuses", active: "Active", inactive: "Inactive" };
-const MENU_TYPE_ITEMS = { dashboard: "Dashboard", frontend: "Frontend" };
-const LINK_TYPE_ITEMS = Object.fromEntries([["all", "All link types"], ...MENU_LINK_TYPES.map((t) => [t, t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())])]);
-
+const MENU_TYPE_ITEMS: Record<string, string> = { dashboard: "Dashboard", frontend: "Frontend" };
+const LINK_TYPE_ITEMS: Record<string, string> = Object.fromEntries([
+  ["all", "All link types"],
+  ...MENU_LINK_TYPES.map((t) => [t, t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())]),
+]);
 
 const humanize = (v?: string) =>
   v ? v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "—";
@@ -107,6 +128,9 @@ export function MenusSection() {
   const [menuType, setMenuType] = React.useState("dashboard");
   const [linkType, setLinkType] = React.useState("all");
   const [status, setStatus] = React.useState("all");
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<MenuRow | null>(null);
+  const [refreshKey, setRefreshKey] = React.useState(0);
 
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   React.useEffect(() => {
@@ -146,7 +170,7 @@ export function MenusSection() {
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedSearch, menuType, linkType, status]);
+  }, [page, debouncedSearch, menuType, linkType, status, refreshKey]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -192,19 +216,327 @@ export function MenusSection() {
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          className="ml-auto"
+          onClick={() => {
+            setEditing(null);
+            setDialogOpen(true);
+          }}
+        >
+          <Plus className="size-4" />
+          Add menu
+        </Button>
       </div>
+
+      <MenuDialog
+        editing={editing}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onSaved={() => setRefreshKey((k) => k + 1)}
+      />
 
       <DataTable
         columns={columns}
         data={rows}
         loading={loading}
-        serverPagination={{
-          pageIndex: page,
-          pageCount,
-          total,
-          onPageChange: setPage,
+        onRowClick={(row) => {
+          setEditing(row);
+          setDialogOpen(true);
         }}
+        serverPagination={{ pageIndex: page, pageCount, total, onPageChange: setPage }}
       />
     </div>
+  );
+}
+
+const STATUS_FORM_ITEMS: Record<string, string> = { active: "Active", inactive: "Inactive" };
+const MENU_TYPE_FORM_ITEMS: Record<string, string> = { dashboard: "Dashboard", frontend: "Frontend" };
+const LINK_TYPE_FORM_ITEMS: Record<string, string> = Object.fromEntries(
+  MENU_LINK_TYPES.map((t) => [t, t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())])
+);
+
+const menuSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .regex(/^[a-z0-9]+(?:[/-][a-z0-9]+)*$/, "Lowercase letters, numbers, / and -"),
+  menu_type: z.enum(["frontend", "dashboard"]),
+  link_type: z.string().min(1, "Link type is required"),
+  sort_order: z.number({ error: "Must be a number" }).int().min(0).optional(),
+  icon: z.string().optional(),
+  external_url: z.string().optional(),
+  open_in_new_tab: z.boolean().optional(),
+  visibility: z.enum(["visible", "hidden"]),
+  status: z.enum(["active", "inactive"]),
+});
+type MenuValues = z.infer<typeof menuSchema>;
+
+function MenuDialog({
+  editing,
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  editing: MenuRow | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<MenuValues>({
+    resolver: zodResolver(menuSchema),
+    defaultValues: {
+      name: "",
+      slug: "",
+      menu_type: "dashboard",
+      link_type: "custom",
+      sort_order: undefined,
+      icon: "",
+      external_url: "",
+      open_in_new_tab: false,
+      visibility: "visible",
+      status: "active",
+    },
+  });
+
+  const watchedName = watch("name");
+  const slugDirty = React.useRef(false);
+
+  React.useEffect(() => {
+    if (open) {
+      slugDirty.current = !!editing;
+      reset({
+        name: editing?.name ?? "",
+        slug: editing?.slug ?? "",
+        menu_type: editing?.menu_type ?? "dashboard",
+        link_type: editing?.link_type ?? "custom",
+        sort_order: editing?.sort_order,
+        icon: editing?.icon ?? "",
+        external_url: editing?.external_url ?? "",
+        open_in_new_tab: editing?.open_in_new_tab ?? false,
+        visibility: editing?.visibility === false ? "hidden" : "visible",
+        status: editing?.is_active === false ? "inactive" : "active",
+      });
+    }
+  }, [open, editing, reset]);
+
+  // Auto-slug from name while creating
+  React.useEffect(() => {
+    if (!editing && !slugDirty.current) {
+      setValue(
+        "slug",
+        watchedName
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9/\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "")
+      );
+    }
+  }, [watchedName, editing, setValue]);
+
+  const linkType = watch("link_type");
+
+  const onSubmit = async (values: MenuValues) => {
+    const body = {
+      name: values.name,
+      slug: values.slug,
+      menu_type: values.menu_type,
+      link_type: values.link_type,
+      sort_order: values.sort_order ?? undefined,
+      icon: values.icon || undefined,
+      external_url: values.link_type === "external_url" ? values.external_url : undefined,
+      open_in_new_tab: values.open_in_new_tab,
+      visibility: values.visibility === "visible",
+      is_active: values.status === "active",
+    };
+    try {
+      const message = editing
+        ? await updateMenu(editing.id, body)
+        : await createMenu(body);
+      toast.success(message);
+      onOpenChange(false);
+      onSaved();
+    } catch (error) {
+      toast.error(
+        apiErrorMessage(error, `Couldn't ${editing ? "update" : "create"} the menu.`)
+      );
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{editing ? "Edit menu" : "Add menu"}</DialogTitle>
+          <DialogDescription>
+            {editing ? `Update "${editing.name}".` : "Create a new navigation menu item."}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="menu-name">Name</Label>
+              <Input
+                id="menu-name"
+                placeholder="Users Management"
+                aria-invalid={!!errors.name}
+                {...register("name")}
+                onChange={(e) => {
+                  slugDirty.current = false;
+                  register("name").onChange(e);
+                }}
+              />
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="menu-slug">Slug</Label>
+              <Input
+                id="menu-slug"
+                placeholder="users"
+                className="font-mono"
+                aria-invalid={!!errors.slug}
+                {...register("slug", {
+                  onChange: () => {
+                    slugDirty.current = true;
+                  },
+                })}
+              />
+              {errors.slug && <p className="text-sm text-destructive">{errors.slug.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>Menu type</Label>
+              <Controller
+                control={control}
+                name="menu_type"
+                render={({ field }) => (
+                  <Select items={MENU_TYPE_FORM_ITEMS} value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dashboard">Dashboard</SelectItem>
+                      <SelectItem value="frontend">Frontend</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Link type</Label>
+              <Controller
+                control={control}
+                name="link_type"
+                render={({ field }) => (
+                  <Select items={LINK_TYPE_FORM_ITEMS} value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MENU_LINK_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          </div>
+
+          {linkType === "external_url" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="menu-url">External URL</Label>
+              <Input id="menu-url" placeholder="https://example.com" {...register("external_url")} />
+            </div>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="menu-icon">Icon class</Label>
+              <Input id="menu-icon" placeholder="fa-shopping-bag" {...register("icon")} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="menu-order">Sort order</Label>
+              <Input id="menu-order" type="number" min={0} placeholder="1" {...register("sort_order", { valueAsNumber: true })} />
+              {errors.sort_order && <p className="text-sm text-destructive">{errors.sort_order.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1.5">
+              <Label>Visibility</Label>
+              <Controller
+                control={control}
+                name="visibility"
+                render={({ field }) => (
+                  <Select
+                    items={{ visible: "Visible", hidden: "Hidden" }}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="visible">Visible</SelectItem>
+                      <SelectItem value="hidden">Hidden</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Status</Label>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field }) => (
+                  <Select items={STATUS_FORM_ITEMS} value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div className="flex flex-col justify-end space-y-1.5">
+              <Label className="invisible">Open in new tab</Label>
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-input bg-card px-3 py-2 text-sm">
+                <input type="checkbox" className="accent-primary" {...register("open_in_new_tab")} />
+                New tab
+              </label>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+              {editing ? "Save changes" : "Save menu"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

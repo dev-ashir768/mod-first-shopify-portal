@@ -11,6 +11,7 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  Star,
   Tag,
   Users,
 } from "lucide-react";
@@ -62,6 +63,7 @@ const mainNav: NavItem[] = [
     href: "/products",
     icon: Package,
     children: [
+      { title: "Categories", href: "/products/categories" },
       { title: "Collections", href: "/products/collections" },
       { title: "Inventory", href: "/products/inventory" },
     ],
@@ -70,6 +72,7 @@ const mainNav: NavItem[] = [
   { title: "Marketing", href: "/marketing", icon: Megaphone },
   { title: "Discounts", href: "/discounts", icon: Tag },
   { title: "Content", href: "/content", icon: FileText },
+  { title: "Reviews", href: "/reviews", icon: Star },
   { title: "Markets", href: "/markets", icon: Globe },
   { title: "Analytics", href: "/analytics", icon: BarChart3 },
 ];

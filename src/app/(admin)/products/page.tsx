@@ -1,24 +1,15 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { type ColumnDef } from "@tanstack/react-table";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowUpDown, Loader2, Package, Plus } from "lucide-react";
+import { format } from "date-fns";
+import { Package, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
+import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -27,280 +18,217 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "@/components/data-table";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { StatusBadge } from "@/components/status-badge";
-import { currency, type Product } from "@/lib/mock-data";
-import {
-  productSchema,
-  type ProductInput,
-  type ProductValues,
-} from "@/lib/validations";
-import { useProductStore } from "@/stores/product-store";
+import { apiErrorMessage } from "@/lib/auth-api";
+import { listProducts, type ProductRow } from "@/lib/admin-api";
 import { cn } from "@/lib/utils";
 
-const columns: ColumnDef<Product>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        indeterminate={
-          table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+const PAGE_SIZE = 20;
+
+const STATUS_ITEMS: Record<string, string> = {
+  all: "All statuses",
+  active: "Active",
+  draft: "Draft",
+  archived: "Archived",
+};
+
+const statusTone = (s?: string) =>
+  s === "active" ? "success" : s === "archived" ? "neutral" : "warning";
+
+const currency = (n?: number | null) =>
+  n != null ? `$${n.toFixed(2)}` : "—";
+
+const columns: ColumnDef<ProductRow>[] = [
   {
     accessorKey: "title",
-    header: ({ column }) => (
-      <button
-        className="flex cursor-pointer items-center gap-1 hover:text-foreground"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Product
-        <ArrowUpDown className="size-3" />
-      </button>
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted">
-          <Package className="size-4 text-muted-foreground" />
-        </span>
-        <span className="font-medium">{row.getValue("title")}</span>
-      </div>
-    ),
+    header: "Product",
+    cell: ({ row }) => {
+      const r = row.original;
+      return (
+        <div className="flex items-center gap-3 min-w-0">
+          {r.featured_image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={r.featured_image}
+              alt={r.title}
+              className="size-10 shrink-0 rounded-lg border border-border object-cover"
+            />
+          ) : (
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
+              <Package className="size-4 text-muted-foreground" />
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="truncate font-medium">{r.title}</p>
+            {r.slug && (
+              <p className="truncate font-mono text-xs text-muted-foreground">
+                /products/{r.slug}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+    cell: ({ row }) => {
+      const s = row.original.status ?? "draft";
+      return (
+        <StatusBadge
+          status={s.charAt(0).toUpperCase() + s.slice(1)}
+          tone={statusTone(s)}
+        />
+      );
+    },
   },
   {
-    accessorKey: "inventory",
+    accessorKey: "quantity",
     header: "Inventory",
     cell: ({ row }) => {
-      const inventory = row.original.inventory;
+      const r = row.original;
+      const qty = r.quantity ?? 0;
+      const vc = r.variants_count;
       return (
-        <span className={cn(inventory === 0 && "text-destructive")}>
-          {inventory === 0
-            ? "0 in stock"
-            : `${inventory} in stock for ${row.original.variants} variant${
-                row.original.variants > 1 ? "s" : ""
-              }`}
+        <span className={cn("text-sm", qty === 0 && "text-destructive")}>
+          {qty === 0
+            ? "Out of stock"
+            : vc && vc > 0
+            ? `${qty} in stock for ${vc} variant${vc > 1 ? "s" : ""}`
+            : `${qty} in stock`}
         </span>
       );
     },
   },
   {
+    accessorKey: "category",
+    header: "Category",
+    cell: ({ row }) => row.original.category ?? "—",
+  },
+  {
+    accessorKey: "vendor",
+    header: "Vendor",
+    cell: ({ row }) => row.original.vendor ?? "—",
+  },
+  {
     accessorKey: "price",
     header: () => <div className="text-right">Price</div>,
     cell: ({ row }) => (
-      <div className="text-right font-medium">{currency(row.getValue("price"))}</div>
+      <div className="text-right font-medium">{currency(row.original.price)}</div>
     ),
   },
-  { accessorKey: "category", header: "Category" },
-  { accessorKey: "vendor", header: "Vendor" },
+  {
+    accessorKey: "created_at",
+    header: "Added",
+    cell: ({ row }) => {
+      const d = row.original.created_at;
+      if (!d) return "—";
+      const date = new Date(d);
+      return isNaN(date.getTime()) ? "—" : format(date, "MMM d, yyyy");
+    },
+  },
 ];
 
-function AddProductDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const addProduct = useProductStore((s) => s.addProduct);
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<ProductInput, unknown, ProductValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      title: "",
-      price: undefined,
-      inventory: undefined,
-      status: "Active",
-      category: "",
-      vendor: "",
-    },
-  });
-
-  const onSubmit = async (values: ProductValues) => {
-    // Swap for: await api.post("/products", values)
-    await new Promise((r) => setTimeout(r, 500));
-    addProduct(values);
-    toast.success(`Product "${values.title}" created`);
-    reset();
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add product</DialogTitle>
-          <DialogDescription>
-            Create a new product for your store.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-          <div className="space-y-1.5">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              placeholder="Short sleeve t-shirt"
-              aria-invalid={!!errors.title}
-              {...register("title")}
-            />
-            {errors.title && (
-              <p className="text-sm text-destructive">{errors.title.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="price">Price (USD)</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                aria-invalid={!!errors.price}
-                {...register("price")}
-              />
-              {errors.price && (
-                <p className="text-sm text-destructive">{errors.price.message}</p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="inventory">Quantity</Label>
-              <Input
-                id="inventory"
-                type="number"
-                min="0"
-                placeholder="0"
-                aria-invalid={!!errors.inventory}
-                {...register("inventory")}
-              />
-              {errors.inventory && (
-                <p className="text-sm text-destructive">
-                  {errors.inventory.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Status</Label>
-            <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Draft">Draft</SelectItem>
-                    <SelectItem value="Archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                placeholder="Apparel"
-                aria-invalid={!!errors.category}
-                {...register("category")}
-              />
-              {errors.category && (
-                <p className="text-sm text-destructive">
-                  {errors.category.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="vendor">Vendor</Label>
-              <Input
-                id="vendor"
-                placeholder="modeFirst"
-                aria-invalid={!!errors.vendor}
-                {...register("vendor")}
-              />
-              {errors.vendor && (
-                <p className="text-sm text-destructive">{errors.vendor.message}</p>
-              )}
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="size-4 animate-spin" />}
-              Save product
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export default function ProductsPage() {
-  const products = useProductStore((s) => s.products);
-  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const router = useRouter();
+  const [rows, setRows] = React.useState<ProductRow[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [page, setPage] = React.useState(0);
+  const [pageCount, setPageCount] = React.useState(1);
+  const [total, setTotal] = React.useState(0);
+
+  const [search, setSearch] = React.useState("");
+  const [status, setStatus] = React.useState("all");
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+  const [refreshKey] = React.useState(0);
+
+  const [debounced, setDebounced] = React.useState("");
+  React.useEffect(() => {
+    const t = setTimeout(() => setDebounced(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  React.useEffect(() => {
+    setPage(0);
+  }, [debounced, status, dateRange]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    listProducts({
+      page: page + 1,
+      limit: PAGE_SIZE,
+      dateRange,
+      filters: {
+        search: debounced || undefined,
+        status: status === "all" ? undefined : status,
+      },
+    })
+      .then((res) => {
+        if (cancelled) return;
+        setRows(res.rows);
+        setTotal(res.total);
+        setPageCount(res.totalPages);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setRows([]);
+        toast.error(apiErrorMessage(err, "Couldn't load products."));
+      })
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [page, debounced, status, dateRange, refreshKey]);
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Products</h1>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            Export
-          </Button>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="size-4" />
-            Add product
-          </Button>
+        <Button onClick={() => router.push("/products/new")}>
+          <Plus className="size-4" />
+          Add product
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-44 flex-1 sm:max-w-64">
+          <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products"
+            className="bg-card pl-8"
+          />
         </div>
+        <Select
+          items={STATUS_ITEMS}
+          value={status}
+          onValueChange={(v) => setStatus(v as string)}
+        >
+          <SelectTrigger className="min-w-36 bg-card">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(STATUS_ITEMS).map(([v, label]) => (
+              <SelectItem key={v} value={v}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
       </div>
 
       <DataTable
         columns={columns}
-        data={products}
-        searchKey="title"
-        searchPlaceholder="Search products"
+        data={rows}
+        loading={loading}
+        onRowClick={(row) => router.push(`/products/${row.id}`)}
+        serverPagination={{ pageIndex: page, pageCount, total, onPageChange: setPage }}
       />
-
-      <AddProductDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   );
 }
