@@ -6,8 +6,8 @@ import {
   CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 import {
-  ArrowDownRight, ArrowUpRight,
-  Package, ShoppingCart, Tag, TrendingUp, Users, Wallet,
+  ArrowDownRight,
+  Package, ShoppingCart, Tag, TrendingUp, Wallet,
 } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { toast } from "sonner";

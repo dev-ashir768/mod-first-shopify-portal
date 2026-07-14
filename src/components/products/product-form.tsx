@@ -136,7 +136,7 @@ function ProductImageGrid({
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
       {images.map((img, i) => (
         <div key={i} className="group relative aspect-square">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- product image URLs are external, next/image needs configured domain */}
           {imgUrl(img.url) ? (
             <img
               src={imgUrl(img.url)}
@@ -377,7 +377,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
     watch,
     setValue,
     getFieldState,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
