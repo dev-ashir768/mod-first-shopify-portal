@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "de430686-d80e-4510-bf26-b14c581c91f1",
-    "name": "ModFirst APIS",
+    "_postman_id": "5bd84eba-b3a4-4058-a74d-b280f1d73197",
+    "name": "ModFirst APIS Updated",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "28574662",
-    "_collection_link": "https://go.postman.co/collection/28574662-de430686-d80e-4510-bf26-b14c581c91f1?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/28574662-5bd84eba-b3a4-4058-a74d-b280f1d73197?source=collection_link"
   },
   "item": [
     {
@@ -43,7 +43,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"rajaammarali2003@gmail.com\", // Required - Your registered email\r\n  \"password\": \"Ah1@Ah1@\",              // Required - Account password\r\n  \"rememberMe\": true                     // Optional - If true, token lasts longer (default: false)\r\n}",
+              "raw": "{\r\n  \"email\": \"ammar@outperformlabs.com\", // Required - Your registered email\r\n  \"password\": \"Ammar@1234\",              // Required - Account password\r\n  \"rememberMe\": true                     // Optional - If true, token lasts longer (default: false)\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -95,7 +95,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"rajaammarali2003@gmail.com\",  // Required - Email for which OTP was sent\r\n  \"otp\": \"331714\"                         // Required - 6 digit OTP received in email\r\n}",
+              "raw": "{\r\n  \"email\": \"ammar@outperformlabs.com\",  // Required - Email for which OTP was sent\r\n  \"otp\": \"010101\"                         // Required - 6 digit OTP received in email\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -173,7 +173,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"refreshToken\": \"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.xxxxx\"  // Required - Refresh token received during login\r\n}",
+              "raw": "{\r\n  \"refreshToken\": \"{{supabase_service_role_api_key_18kp}}\"  // Required - Refresh token received during login\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -312,6 +312,33 @@
               ],
               "path": [
                 "change-password"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}auth/logout",
+              "host": [
+                "{{BASE_URL}}auth"
+              ],
+              "path": [
+                "logout"
               ]
             }
           },
@@ -548,7 +575,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"page\": 1,                                       // Optional (default: 1)\n  \"limit\": 15,                                     // Optional (default: 10)\n  \"filters\": {\n    \"name\": \"Hyattsville\",                         // Optional\n    \"code\": \"HYA\",                                 // Optional\n    \"city\": \"Hyattsville\",                         // Optional\n    \"state\": \"MD\",                                 // Optional\n    \"country\": \"United States\",                    // Optional\n    \"email\": \"@modfirstapparel.com\",               // Optional\n    \"phone\": \"240\",                                // Optional\n    \"manager_name\": \"Ammar\",                       // Optional\n    \"manager_email\": \"rajaammarali\",               // Optional\n    \"is_active\": true,                             // Optional\n    \"created_by\": 1                                // Optional\n  },\n  \"startDate\": \"2026-01-01\",                       // Optional\n  \"endDate\": \"2026-07-06\"                          // Optional\n}",
+              "raw": "{\n//   \"page\": 1,                                       // Optional (default: 1)\n//   \"limit\": 15,                                     // Optional (default: 10)\n  \"filters\": {\n    // \"name\": \"Hyattsville\",                         // Optional\n    // \"code\": \"HYA\",                                 // Optional\n    // \"city\": \"Hyattsville\",                         // Optional\n    // \"state\": \"MD\",                                 // Optional\n    // \"country\": \"United States\",                    // Optional\n    // \"email\": \"@modfirstapparel.com\",               // Optional\n    // \"phone\": \"240\",                                // Optional\n    \"manager_name\": \"Ammar Ali\"                       // Optional\n    // \"manager_email\": \"rajaammarali\",               // Optional\n    // \"is_active\": true,                             // Optional\n    // \"created_by\": 1                                // Optional\n  }\n//   \"startDate\": \"2026-01-01\",                       // Optional\n//   \"endDate\": \"2026-07-06\"                          // Optional\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -624,7 +651,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Hyattsville Main Branch - Updated\",     // Optional\n  \"code\": \"HYA001\",                                // Optional (must remain unique if changed)\n  \"description\": \"Main production & retail branch in Hyattsville, Maryland\", // Optional\n  \"address_line_1\": \"1234 Baltimore Avenue\",       // Optional\n  \"address_line_2\": \"Suite 250\",                   // Optional\n  \"city\": \"Hyattsville\",                           // Optional\n  \"state\": \"MD\",                                   // Optional\n  \"country\": \"United States\",                      // Optional\n  \"postal_code\": \"20782\",                          // Optional\n  \"phone\": \"+1 (240) 555-0123\",                    // Optional\n  \"email\": \"hyattsville@modfirstapparel.com\",      // Optional\n  \"manager_name\": \"Ammar Ali\",                     // Optional\n  \"manager_email\": \"rajaammarali2003@gmail.com\",   // Optional\n  \"manager_phone\": \"+1 (240) 555-0987\",            // Optional\n  \"is_active\": true                                // Optional\n}",
+              "raw": "{\n//   \"name\": \"Hyattsville Main Branch - Updated\",     // Optional\n//   \"code\": \"HYA001\",                                // Optional (must remain unique if changed)\n//   \"description\": \"Main production & retail branch in Hyattsville, Maryland\", // Optional\n//   \"address_line_1\": \"1234 Baltimore Avenue\",       // Optional\n//   \"address_line_2\": \"Suite 250\",                   // Optional\n//   \"city\": \"Hyattsville\",                           // Optional\n//   \"state\": \"MD\",                                   // Optional\n//   \"country\": \"United States\",                      // Optional\n//   \"postal_code\": \"20782\",                          // Optional\n//   \"phone\": \"+1 (240) 555-0123\",                    // Optional\n//   \"email\": \"hyattsville@modfirstapparel.com\",      // Optional\n  \"manager_name\": \"Ammar\"                      // Optional\n//   \"manager_email\": \"rajaammarali2003@gmail.com\",   // Optional\n//   \"manager_phone\": \"+1 (240) 555-0987\",            // Optional\n//   \"is_active\": true                                // Optional\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -944,7 +971,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"page\": 1,                                   // Optional\n  \"limit\": 20,                                 // Optional\n  \"startDate\": \"2026-01-01\",                   // Optional\n  \"endDate\": \"2026-07-08\",                      // Optional\n  \"filters\": {\n    // \"full_name\": \"Ammar\",                      // Optional\n    \"email\": \"rajaammarali2003@gmail.com\"     // Optional\n    // \"role\": \"admin\",                           // Optional (customer/manager/super_admin/admin/designer/sales/support/content_writer/production/accountant)\n    // \"is_active\": true,                         // Optional\n    // \"is_locked\": false,                        // Optional\n    // \"is_admin\": true                           // Optional\n  }\n}",
+              "raw": "{\n  \"page\": 1,                                   // Optional\n  \"limit\": 20,                                 // Optional\n  \"startDate\": \"2026-01-01\",                   // Optional\n  \"endDate\": \"2026-07-13\",                      // Optional\n  \"filters\": {\n    // \"full_name\": \"Ammar\",                      // Optional\n    // \"email\": \"rajaammarali2003@gmail.com\"     // Optional\n    // \"role\": \"admin\",                           // Optional (customer/manager/super_admin/admin/designer/sales/support/content_writer/production/accountant)\n    // \"is_active\": true,                         // Optional\n    // \"is_locked\": false,                        // Optional\n    // \"is_admin\": true                           // Optional\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1116,6 +1143,57 @@
               "path": [
                 "{{userId}}",
                 "unlock"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Terminate User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success is true\", function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test(\"Unlock message received\", function () {",
+                  "  pm.expect(json.payload).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}users/{{userId}}/terminate-session",
+              "host": [
+                "{{BASE_URL}}users"
+              ],
+              "path": [
+                "{{userId}}",
+                "terminate-session"
               ]
             }
           },
@@ -1455,7 +1533,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"auto_lock_minutes\": 10     // Required (1 to 120)\n}",
+              "raw": "{\n  \"auto_lock_minutes\": 1     // Required (1 to 120)\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1470,6 +1548,66 @@
               "path": [
                 "pin",
                 "auto-lock"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Pin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Response success is true\", function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test(\"PIN changed\", function () {",
+                  "  pm.expect(json.payload).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": 1,\n    \"newPin\": \"5623\", // Required (4-6 digits)\n    \"confirmNewPin\": \"5623\" // Required\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}users/pin/reset",
+              "host": [
+                "{{BASE_URL}}users"
+              ],
+              "path": [
+                "pin",
+                "reset"
               ]
             }
           },
@@ -1680,13 +1818,13 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}website-settings/frontend/ModFirst Apparel",
+              "raw": "{{BASE_URL}}website-settings/frontend/ModFirst",
               "host": [
                 "{{BASE_URL}}website-settings"
               ],
               "path": [
                 "frontend",
-                "ModFirst Apparel"
+                "ModFirst"
               ]
             }
           },
@@ -1730,7 +1868,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"site_name\": \"ModFirst\",                                      // Optional\n  \"site_tagline\": \"Premium Custom Apparel & Printing Services\",         // Optional\n  \"site_description\": \"Leading custom printing company in Hyattsville, Maryland. Specializing in DTF transfers, embroidery, UV DTF stickers, t-shirts, hoodies, banners and promotional products. Fast turnaround, no minimum order.\", // Optional\n  \"logo_url\": \"https://storage.modfirstapparel.com/logos/main-logo.png\",        // Optional\n  \"favicon_url\": \"https://storage.modfirstapparel.com/logos/favicon.ico\",       // Optional\n  \"footer_logo_url\": \"https://storage.modfirstapparel.com/logos/footer-logo.png\", // Optional\n  \"primary_color\": \"#030303\",      // Optional\n  \"secondary_color\": \"#C2E105\",    // Optional\n  \"accent_color\": \"#FFFFFF\",       // Optional\n  \"font_primary\": \"Barlow\",        // Optional\n  \"font_heading\": \"Barlow\",        // Optional\n  \"contact_email\": \"info@modfirstapparel.com\",      // Optional\n  \"support_email\": \"support@modfirstapparel.com\",   // Optional\n  \"contact_phone\": \"+1 (240) 555-0123\",     // Optional\n  \"whatsapp_number\": \"+1 (240) 555-0123\",   // Optional\n  \"address\": \"Hyattsville, Maryland, USA\",  // Optional\n  \"city\": \"Hyattsville\",                    // Optional\n  \"country_code\": \"US\",                     // Optional\n  \"postal_code\": \"20782\",                   // Optional\n  \"province_code\": \"MD\",                    // Optional\n  \"business_hours\": \"Monday - Friday: 9:00 AM - 6:00 PM | Saturday: 10:00 AM - 4:00 PM\", // Optional\n  \"facebook_url\": \"https://facebook.com/modfirstapparel\",     // Optional\n  \"instagram_url\": \"https://instagram.com/modfirstapparel\",   // Optional\n  \"twitter_url\": \"https://twitter.com/modfirstapparel\",       // Optional\n  \"linkedin_url\": \"\",                                         // Optional\n  \"youtube_url\": \"\",                                          // Optional\n  \"tiktok_url\": \"https://tiktok.com/@modfirstapparel\",        // Optional\n  \"pinterest_url\": \"\",                                        // Optional\n  \"playstore_url\": \"\",   // Optional\n  \"appstore_url\": \"\",    // Optional\n  \"currency\": \"USD\",           // Optional\n  \"currency_symbol\": \"$\",      // Optional\n  \"tax_percentage\": 6.0,                    // Optional\n  \"default_shipping_fee\": 8.99,             // Optional\n  \"free_shipping_threshold\": 75.00,         // Optional\n  \"min_order_amount\": 15.00,                // Optional\n  \"first_order_discount_enabled\": true,           // Optional\n  \"first_order_discount_type\": \"percentage\",      // Optional (percentage or fixed_amount)\n  \"first_order_discount_value\": 15,               // Optional\n  \"first_order_max_discount\": 50,                 // Optional\n  \"meta_title\": \"ModFirst Apparel - Custom Printing & Embroidery in Maryland\", // Optional\n  \"meta_description\": \"Premium quality custom apparel printing. T-shirts, hoodies, DTF, DTG, embroidery, banners & more. Same day & rush orders available.\", // Optional\n  \"meta_keywords\": \"custom t shirts, dtf printing, embroidery near me, custom hoodies, promotional products, uv dtf stickers, Maryland apparel printing\", // Optional\n  \"og_image_url\": \"https://storage.modfirstapparel.com/og-image.jpg\", // Optional\n  \"is_active\": true   // Optional\n}"
+              "raw": "{\n  \"site_name\": \"ModFirst\",                                      // Optional\n//   \"site_tagline\": \"Premium Custom Apparel & Printing Services\",         // Optional\n//   \"site_description\": \"Leading custom printing company in Hyattsville, Maryland. Specializing in DTF transfers, embroidery, UV DTF stickers, t-shirts, hoodies, banners and promotional products. Fast turnaround, no minimum order.\", // Optional\n  \"logo_url\": \"/uploads/logo/logo-mf-1-1783955816460-869281420.png\",        // Optional\n  \"favicon_url\": \"/uploads/logo/favicon-1783955941748-665731589.png\",       // Optional\n  \"footer_logo_url\": \"/uploads/logo/logo-dark-lg-1783955978493-159876747.svg\", // Optional\n  \"primary_color\": \"#030303\",      // Optional\n  \"secondary_color\": \"#C2E105\",    // Optional\n  \"accent_color\": \"#FFFFFF\",       // Optional\n  \"font_primary\": \"Barlow\",        // Optional\n  \"font_heading\": \"Barlow\",        // Optional\n  \"contact_email\": \"info@modfirstapparel.com\",      // Optional\n  \"support_email\": \"support@modfirstapparel.com\",   // Optional\n  \"contact_phone\": \"+1 (240) 555-0123\",     // Optional\n  \"whatsapp_number\": \"+1 (240) 555-0123\",   // Optional\n  \"address\": \"Hyattsville, Maryland, USA\",  // Optional\n  \"city\": \"Hyattsville\",                    // Optional\n  \"country_code\": \"US\",                     // Optional\n  \"postal_code\": \"20782\",                   // Optional\n  \"province_code\": \"MD\",                    // Optional\n  \"business_hours\": \"Monday - Friday: 9:00 AM - 6:00 PM | Saturday: 10:00 AM - 4:00 PM\", // Optional\n  \"facebook_url\": \"https://facebook.com/modfirstapparel\",     // Optional\n  \"instagram_url\": \"https://instagram.com/modfirstapparel\",   // Optional\n  \"twitter_url\": \"https://twitter.com/modfirstapparel\",       // Optional\n  \"linkedin_url\": \"\",                                         // Optional\n  \"youtube_url\": \"\",                                          // Optional\n  \"tiktok_url\": \"https://tiktok.com/@modfirstapparel\",        // Optional\n  \"pinterest_url\": \"\",                                        // Optional\n  \"playstore_url\": \"\",   // Optional\n  \"appstore_url\": \"\",    // Optional\n  \"currency\": \"USD\",           // Optional\n  \"currency_symbol\": \"$\",      // Optional\n  \"tax_percentage\": 6.0,                    // Optional\n  \"default_shipping_fee\": 8.99,             // Optional\n  \"free_shipping_threshold\": 75.00,         // Optional\n  \"min_order_amount\": 15.00,                // Optional\n  \"first_order_discount_enabled\": true,           // Optional\n  \"first_order_discount_type\": \"percentage\",      // Optional (percentage or fixed_amount)\n  \"first_order_discount_value\": 15,               // Optional\n  \"first_order_max_discount\": 50,                 // Optional\n  \"meta_title\": \"ModFirst Apparel - Custom Printing & Embroidery in Maryland\", // Optional\n  \"meta_description\": \"Premium quality custom apparel printing. T-shirts, hoodies, DTF, DTG, embroidery, banners & more. Same day & rush orders available.\", // Optional\n  \"meta_keywords\": \"custom t shirts, dtf printing, embroidery near me, custom hoodies, promotional products, uv dtf stickers, Maryland apparel printing\", // Optional\n  \"og_image_url\": \"https://storage.modfirstapparel.com/og-image.jpg\", // Optional\n  \"is_active\": true   // Optional\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}website-settings/1",
@@ -1821,7 +1959,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"section_key\": \"home_hero\",                    // Required - unique identifier (lowercase + underscores only)\n  \"section_name\": \"Hero Banner Section\",         // Optional\n  \"title\": \"Premium Custom Apparel\",             // Optional\n  \"subtitle\": \"Made for You, Delivered Fast\",    // Optional\n  \"description\": \"High-quality custom printing with DTF, Embroidery & more. No minimum order.\", // Optional\n  \"background_image\": \"https://storage.modfirstapparel.com/banners/home-hero-bg.jpg\", // Optional\n  \"background_color\": \"#030303\",                 // Optional\n  \"layout_type\": \"hero\",                         // Optional\n  \"sort_order\": 1,                               // Optional (default: 0)\n  \"is_active\": true,                             // Optional (default: true)\n  \"section_settings\": {                          // Optional - JSON for extra config\n    \"autoplay\": true,\n    \"interval\": 5000\n  },\n  \"items\": [                                     // Optional - Array of items\n    {\n      \"title\": \"Shop T-Shirts\",                  // Required for each item\n      \"subtitle\": \"Starting at $19.99\",          // Optional\n      \"description\": \"Premium cotton tees with custom printing\", // Optional\n      \"image_url\": \"https://storage.modfirstapparel.com/products/tshirt-model.jpg\", // Optional\n      \"mobile_image_url\": \"\",                    // Optional\n      \"button_text\": \"Shop Now\",                 // Optional\n      \"button_url\": \"/shop/t-shirts\",            // Optional\n      \"badge\": \"New\",                            // Optional\n      \"sort_order\": 1,                           // Optional\n      \"is_active\": true                          // Optional\n    }\n  ]\n}"
+              "raw": "{\n    \"section_key\": \"why_modfirst\",\n    \"section_name\": \"Why Modfirst Section\",\n    \"title\": \"Why Modfirst?\",\n    \"subtitle\": \"Premium Custom Products at Affordable Prices\",\n    \"description\": \"We deliver premium custom products at prices everyone can afford. From T-shirts, hoodies, banners, yard signs, and business cards to embroidery and transfers, every product is crafted with precision, quality, and attention to detail to meet your unique needs without exceeding your budget.\",\n    \"background_image\": \"\",\n    \"background_color\": \"#FFFFFF\",\n    \"layout_type\": \"content_with_gallery\",\n    \"sort_order\": 2,\n    \"is_active\": true,\n    \"section_settings\": {\n        \"show_bullets\": true,\n        \"image_layout\": \"gallery\",\n        \"gallery_columns\": 2\n    },\n    \"items\": [\n        {\n            \"title\": \"Affordable Custom Quality\",\n            \"subtitle\": \"\",\n            \"description\": \"High-quality custom products at competitive prices.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 1,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Reliable & Fast Shipping\",\n            \"subtitle\": \"\",\n            \"description\": \"Quick turnaround times with dependable nationwide delivery.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 2,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Superior Print & Finish\",\n            \"subtitle\": \"\",\n            \"description\": \"Premium materials and exceptional craftsmanship for every order.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 3,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Exceptional Customer Care\",\n            \"subtitle\": \"\",\n            \"description\": \"Dedicated support from consultation through delivery.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 4,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Modfirst Storefront\",\n            \"image_url\": \"/uploads/why_choose_us/banner-1783956427516-250745611.webp\",\n            \"mobile_image_url\": \"\",\n            \"sort_order\": 5,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Fast & Secure Delivery\",\n            \"image_url\": \"/uploads/why_choose_us/rider-1783956427364-759855365.webp\",\n            \"mobile_image_url\": \"\",\n            \"sort_order\": 6,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Custom Branded Products\",\n            \"image_url\": \"https://storage.modfirstapparel.com/sections/why-modfirst/products.jpg\",\n            \"mobile_image_url\": \"\",\n            \"sort_order\": 7,\n            \"is_active\": true\n        }\n    ]\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}home-sections",
@@ -1894,7 +2032,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"startDate\": \"2026-01-01\",          // Global date filter (start)\n  \"endDate\": \"2026-07-07\"  ,           // Global date filter (end)\n  \"filters\": {\n    // \"id\": 5,                          // number\n    \"section_key\": \"home_hero\"       // string\n    // \"section_name\": \"Hero\",           // string\n    // \"is_active\": true                // boolean\n  }\n}"
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"startDate\": \"2026-01-01\",          // Global date filter (start)\n  \"endDate\": \"2026-07-13\"  ,           // Global date filter (end)\n  \"filters\": {\n    // \"id\": 5,                          // number\n    // \"section_key\": \"home_hero\"       // string\n    // \"section_name\": \"Hero\",           // string\n    // \"is_active\": true                // boolean\n  }\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}home-sections/list",
@@ -2056,13 +2194,13 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}home-sections/frontend/home_hero",
+              "raw": "{{BASE_URL}}home-sections/frontend/why_modfirst",
               "host": [
                 "{{BASE_URL}}home-sections"
               ],
               "path": [
                 "frontend",
-                "home_hero"
+                "why_modfirst"
               ]
             }
           },
@@ -2542,7 +2680,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBfaWQiOjMsImlhdCI6MTc4MTE2MjEwNX0.EnvC1UARQ9brjPIckxjyECRbXDnJHx-Pob8gEW_GmkQ",
+                  "value": "{{supabase_service_role_api_key_0vtj}}",
                   "type": "string"
                 }
               ]
@@ -2814,6 +2952,42 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Sort Order",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"items\": [\r\n        {\r\n            \"sort_order\": 1,\r\n            \"id\": 2\r\n        },\r\n        {\r\n            \"sort_order\": 2,\r\n            \"id\": 3\r\n        },\r\n        {\r\n            \"sort_order\": 3,\r\n            \"id\": 4\r\n        },\r\n        {\r\n            \"sort_order\": 4,\r\n            \"id\": 5\r\n        }\r\n    ], // Required\r\n    \"table\": \"menu\" // Required - See list below\r\n}\r\n\r\n// available models\r\n//  'menu',\r\n//     'category',\r\n//     'generalFaq',\r\n//     'productDescription',\r\n//     'productImage',\r\n//     'productFaq',\r\n//     'homeBanner',\r\n//     'homeSection',\r\n//     'homeSectionItem',\r\n//     'footerSection',\r\n//     'footerLink',",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}common/sort-order",
+              "host": [
+                "{{BASE_URL}}common"
+              ],
+              "path": [
+                "sort-order"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -3005,7 +3179,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Shop\",                              // Required\n  \"slug\": \"shop/test/test\",                              // Required\n  \"menu_type\": \"frontend\",                     // Required (frontend / dashboard)\n  \"parent_id\": 3,                           // Optional (for sub-menu)\n  \"sort_order\": 1,                             // Optional\n  \"icon\": \"fa-shopping-bag\",                   // Optional\n  \"link_type\": \"category\",                     // Required (category / product / page / collection / external_url / custom)\n  \"link_value\": \"\",                            // Optional\n  \"target_category_id\": null,                     // Optional\n  \"target_product_id\": null,                   // Optional\n  \"target_page_id\": null,                      // Optional\n  \"external_url\": \"\",                          // Optional\n  \"open_in_new_tab\": false,                    // Optional\n  \"visibility\": true,                          // Optional\n  \"is_active\": true                            // Optional\n}"
+              "raw": "{\n  \"name\": \"Create Your Own Gang Sheets Online\",                              // Required\n  \"slug\": \"shop/test/\",                              // Required\n  \"menu_type\": \"frontend\",                     // Required (frontend / dashboard)\n  \"parent_id\": 2,                           // Optional (for sub-menu)\n  \"sort_order\": 1,                             // Optional\n  \"icon\": \"fa-shopping-bag\",                   // Optional\n  \"link_type\": \"category\",                     // Required (category / product / page / collection / external_url / custom)\n  \"link_value\": \"\",                            // Optional\n  \"target_category_id\": null,                     // Optional\n  \"target_product_id\": null,                   // Optional\n  \"target_page_id\": null,                      // Optional\n  \"external_url\": \"\",                          // Optional\n  \"open_in_new_tab\": false,                    // Optional\n  \"visibility\": true,                          // Optional\n  \"is_active\": true                            // Optional\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}menus",
@@ -3162,6 +3336,82 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Get Menus (Tree Based)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filters\": {\n    // \"menu_type\": \"dashboard\",             // Required for dashboard menus\n    // \"is_active\": true,                    // Recommended\n    // \"visibility\": true                   // Recommended\n    // \"parent_id\": 1,                       // Optional - For sub menus\n    // \"name\": \"Users Management\",           // Optional\n    // \"slug\": \"users\",                      // Optional\n    // \"link_type\": \"custom\",                // Optional\n    // \"created_by\": 1                       // Optional\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}menus/tree",
+              "host": [
+                "{{BASE_URL}}menus"
+              ],
+              "path": [
+                "tree"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Menus (Tree Based) (Frontend)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{X_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-password",
+                "value": "{{X_API_PASSWORD}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filters\": {\n    // \"menu_type\": \"dashboard\",             // Required for dashboard menus\n    // \"is_active\": true,                    // Recommended\n    // \"visibility\": true                   // Recommended\n    // \"parent_id\": 1,                       // Optional - For sub menus\n    // \"name\": \"Users Management\",           // Optional\n    // \"slug\": \"users\",                      // Optional\n    // \"link_type\": \"custom\",                // Optional\n    // \"created_by\": 1                       // Optional\n  }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}menus/frontend/tree",
+              "host": [
+                "{{BASE_URL}}menus"
+              ],
+              "path": [
+                "frontend",
+                "tree"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -3190,7 +3440,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"menu_id\": 5,                    // Required\n  \"role\": \"admin\",                 // Required (super_admin / admin / manager / designer / sales / support / content_writer / production / accountant / customer)\n  \"can_view\": true,                // Optional (default: true)\n  \"can_create\": true,              // Optional (default: false)\n  \"can_edit\": true,                // Optional (default: false)\n  \"can_delete\": false              // Optional (default: false)\n}"
+              "raw": "{\n  \"menu_id\": 1,                    // Required\n  \"role\": \"super_admin\",                 // Required (super_admin / admin / manager / designer / sales / support / content_writer / production / accountant / customer)\n  \"can_view\": true,                // Optional (default: true)\n  \"can_create\": true,              // Optional (default: false)\n  \"can_edit\": true,                // Optional (default: false)\n  \"can_delete\": true              // Optional (default: false)\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}menu-rights",
@@ -3340,7 +3590,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"About Us\",                                      // Required\n  \"slug\": \"about-us\",                                       // Required\n  \"content\": \"<p>Full HTML content here... </p>\",          // Required (Long Text)\n  \"content_type\": \"page\",                                   // Required (page / blog_post / faq / policy / privacy / terms)\n  \"meta_title\": \"About ModFirst Apparel\",                   // Optional\n  \"meta_desc\": \"Learn more about our company and values\",   // Optional\n//   \"meta_keywords\": \"about us, company, modfirst apparel\",   // Optional\n  \"canonical_url\": \"https://modfirstapparel.com/about-us\",  // Optional\n  \"featured_image\": \"https://storage.modfirstapparel.com/pages/about-us.jpg\", // Optional\n  \"is_active\": true                                         // Optional (default: true)\n}",
+              "raw": "{\n  \"title\": \"About Us\",                                      // Required\n  \"slug\": \"about-us\",                                       // Required\n  \"content\": \"<p>Full HTML content here... </p>\",          // Required (Long Text)\n  \"content_type\": \"page\",                                   // Required (page / blog_post / faq / policy / privacy / terms)\n  \"meta_title\": \"About ModFirst Apparel\",                   // Optional\n  \"meta_desc\": \"Learn more about our company and values\",   // Optional\n  \"meta_keywords\": \"about us, company, modfirst apparel\",   // Optional\n  \"canonical_url\": \"https://modfirstapparel.com/about-us\",  // Optional\n  \"featured_image\": \"https://storage.modfirstapparel.com/pages/about-us.jpg\", // Optional\n  \"is_active\": true                                         // Optional (default: true)\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -7147,7 +7397,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "{{BASE_URL}}inventory/get/14?variant_id=9",
+              "raw": "{{BASE_URL}}inventory/get/14?variant_id=1",
               "host": [
                 "{{BASE_URL}}inventory"
               ],
@@ -7158,7 +7408,7 @@
               "query": [
                 {
                   "key": "variant_id",
-                  "value": "9"
+                  "value": "1"
                 }
               ]
             }
@@ -11449,20 +11699,23 @@
                 {
                   "key": "files",
                   "type": "file",
-                  "src": "/C:/Users/CG/Downloads/banner4.webp"
+                  "src": "/C:/Users/rajaa/Downloads/modlogo/coffee-mugs.webp"
                 },
                 {
                   "key": "files",
                   "type": "file",
-                  "src": [
-                    "/C:/Users/CG/Downloads/banner1.webp",
-                    "/C:/Users/CG/Downloads/banner2.webp"
-                  ]
+                  "src": "/C:/Users/rajaa/Downloads/modlogo/rider.webp"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "uuid": "8f8b553b-3132-4568-b39d-7882a8551f2c",
+                  "src": "/C:/Users/rajaa/Downloads/modlogo/banner.webp"
                 }
               ]
             },
             "url": {
-              "raw": "{{BASE_URL}}upload/images?folder=testing",
+              "raw": "{{BASE_URL}}upload/images?folder=why_choose_us",
               "host": [
                 "{{BASE_URL}}upload"
               ],
@@ -11472,8 +11725,7 @@
               "query": [
                 {
                   "key": "folder",
-                  "value": "testing",
-                  "type": "text"
+                  "value": "why_choose_us"
                 }
               ]
             },
@@ -11724,7 +11976,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"user_id\": 3, // Optional (for logged-in user) | Required if guest then use email\n    \"email\": \"rajaammarali2003@gmail.com\", // Required for guest orders\n    \"phone\": \"+1 (240) 555-0123\", // Optional\n    \"full_name\": \"Ammar Ali\", // Optional\n    \"delivery_type\": \"home_delivery\", // Required → Enum: home_delivery / store_pickup\n    \"shipping_address_id\": 7, // Optional (if already saved address)\n    // OR create new shipping address\n    \"shipping_address\": {\n        \"full_name\": \"Ammar Ali\", // Required if new address\n        \"phone\": \"+1 (240) 555-0123\", // Required\n        \"email\": \"rajaammarali2003@gmail.com\", // Optional\n        \"address_line1\": \"1234 Baltimore Avenue\", // Required\n        \"address_line2\": \"Suite 200\", // Optional\n        \"city\": \"Hyattsville\", // Required\n        \"state\": \"MD\", // Optional\n        \"postal_code\": \"20782\", // Optional\n        \"country\": \"United States\" // Optional (default)\n    },\n    \"billing_address_id\": 7, // Optional\n    \"items\": [ // Required - At least 1 item\n        {\n            \"product_id\": 42, // Required\n            \"variant_id\": 15, // Optional\n            \"quantity\": 2, // Required\n            \"print_method\": \"dtf\", // Optional → Enum: dtf, dtg, embroidery, screen_print, sublimation, uv_dtf, vinyl\n            \"custom_text\": \"My Custom Text\", // Optional\n            \"design_upload_ids\": [\n                101,\n                102\n            ] // Optional (array of design upload IDs)\n        }\n    ],\n    \"coupon_code\": \"SUMMER25\", // Optional\n    \"pickup_location_id\": 1, // Required only if delivery_type = store_pickup\n    \"notes\": \"Please deliver between 10 AM - 2 PM\" // Optional\n}",
+              "raw": "{\n    \"user_id\": 3, // Optional (for logged-in user) | Required if guest then use email\n    \"email\": \"rajaammarali2003@gmail.com\", // Required for guest orders\n    \"phone\": \"+1 (240) 555-0123\", // Optional\n    \"full_name\": \"Ammar Ali\", // Optional\n    \"delivery_type\": \"home_delivery\", // Required → Enum: home_delivery / store_pickup\n    \"shipping_address_id\": 7, // Optional (if already saved address)\n    // OR create new shipping address\n    \"shipping_address\": {\n        \"full_name\": \"Ammar Ali\", // Required if new address\n        \"phone\": \"+1 (240) 555-0123\", // Required\n        \"email\": \"rajaammarali2003@gmail.com\", // Optional\n        \"address_line1\": \"1234 Baltimore Avenue\", // Required\n        \"address_line2\": \"Suite 200\", // Optional\n        \"city\": \"Hyattsville\", // Required\n        \"state\": \"MD\", // Optional\n        \"postal_code\": \"20782\", // Optional\n        \"country\": \"United States\" // Optional (default)\n    },\n    \"billing_address_id\": 7, // Optional\n    \"items\": [ // Required - At least 1 item\n        {\n            \"product_id\": 42, // Required\n            \"variant_id\": 15, // Optional\n            \"quantity\": 2, // Required\n            \"print_method\": \"dtf\", // Optional → Enum: dtf, dtg, embroidery, screen_print, sublimation, uv_dtf, vinyl\n            \"custom_text\": \"My Custom Text\", // Optional\n            \"design_upload_ids\": [\n                101,\n                102\n            ], // Optional (array of design upload IDs)\n              \"design_uploads\": [ // Optional\n                {\n                    \"file_url\": \"https://storage.../design1.png\",\n                    \"file_name\": \"custom-logo.png\",\n                    \"edit_url\": \"https://storage.../edit1.png\",\n                    \"print_method\": \"dtf\"\n                }\n            ],\n        }\n    ],\n    \"coupon_code\": \"SUMMER25\", // Optional\n    \"pickup_location_id\": 1, // Required only if delivery_type = store_pickup\n    \"notes\": \"Please deliver between 10 AM - 2 PM\" // Optional\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -12296,7 +12548,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"order_id\": 123, // Required\n    \"payment_method\": \"stripe\", // Required → Enum: stripe / paypal / stripe_and_cash / paypal_and_cash / without_payment\n    \"success_url\": \"https://yourfrontend.com/payment/success\", // Optional\n    \"cancel_url\": \"https://yourfrontend.com/payment/cancel\", // Optional\n    \"online_amount\": 120.50, // Required for split payment (stripe_and_cash / paypal_and_cash)\n    \"cash_amount\": 30.00, // Required for split payment\n    \"metadata\": { // Optional\n        \"source\": \"web\",\n        \"campaign\": \"summer_sale\"\n    }\n}",
+              "raw": "{\n    \"order_id\": 11, // Required\n    \"payment_method\": \"paypal\", // Required → Enum: stripe / paypal / stripe_and_cash / paypal_and_cash / without_payment\n    \"success_url\": \"https://yourfrontend.com/payment/success\", // Optional\n    \"cancel_url\": \"https://yourfrontend.com/payment/cancel\", // Optional\n    \"online_amount\": 120.50, // Required for split payment (stripe_and_cash / paypal_and_cash)\n    \"cash_amount\": 30.00, // Required for split payment\n    \"metadata\": { // Optional\n        \"source\": \"web\",\n        \"campaign\": \"summer_sale\"\n    }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -12605,23 +12857,20 @@
           ],
           "request": {
             "auth": {
-              "type": "noauth"
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
             },
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "x-api-key",
-                "value": "{{X_API_KEY}}",
-                "type": "text"
-              },
-              {
-                "key": "x-api-password",
-                "value": "{{X_API_PASSWORD}}",
-                "type": "text"
               }
             ],
             "body": {
@@ -12961,6 +13210,67 @@
               "path": [
                 "webhook",
                 "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Track Shipment (Frontend)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData).to.have.property('payload');",
+                  "    pm.expect(jsonData.success).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Tracking info has required fields', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    const tracking = jsonData.payload;",
+                  "    pm.expect(tracking).to.have.property('status');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{X_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-password",
+                "value": "{{X_API_PASSWORD}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}shippings/frontend/{{order_id}}/track",
+              "host": [
+                "{{BASE_URL}}shippings"
+              ],
+              "path": [
+                "frontend",
+                "{{order_id}}",
+                "track"
               ]
             }
           },
@@ -13842,6 +14152,1033 @@
               "path": [
                 "frontend",
                 "{{order_comment_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"last_30_days\",              // Optional (default: \"last_30_days\") - e.g. today / yesterday / last_7_days / last_30_days / this_month / last_month / this_year / custom\n  \"startDate\": \"2026-06-01\",             // Optional - Required only when period = \"custom\"\n  \"endDate\": \"2026-07-07\",               // Optional - Required only when period = \"custom\" (must be after startDate)\n  \"branch_id\": 1                          // Optional - Filter stats to a specific branch\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/overview",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "overview"
+              ]
+            },
+            "description": "Top-line snapshot: revenue, orders, new customers, AOV, pending orders, low stock alerts, total active customers/products - each with % change vs the immediately preceding period of the same length."
+          },
+          "response": []
+        },
+        {
+          "name": "Revenue Trend",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"last_30_days\",              // Optional (default: \"last_30_days\")\n  \"startDate\": \"2026-06-01\",             // Optional - Required only when period = \"custom\"\n  \"endDate\": \"2026-07-07\",               // Optional - Required only when period = \"custom\"\n  \"branch_id\": 1,                         // Optional - Filter to a specific branch\n  \"groupBy\": \"day\"                        // Optional (default: \"day\") - day / week / month\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/revenue-trend",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "revenue-trend"
+              ]
+            },
+            "description": "Revenue + order-count trend bucketed by day/week/month - for a line/bar chart."
+          },
+          "response": []
+        },
+        {
+          "name": "Customer Growth Trend",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"last_30_days\",              // Optional (default: \"last_30_days\")\n  \"startDate\": \"2026-06-01\",             // Optional - Required only when period = \"custom\"\n  \"endDate\": \"2026-07-07\",               // Optional - Required only when period = \"custom\"\n  \"branch_id\": 1,                         // Optional (accepted but not used in this query)\n  \"groupBy\": \"day\"                        // Optional (default: \"day\") - day / week / month\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/customer-growth-trend",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "customer-growth-trend"
+              ]
+            },
+            "description": "New customer signups trend bucketed by day/week/month - for a line/bar chart."
+          },
+          "response": []
+        },
+        {
+          "name": "Order Status Breakdown",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"last_30_days\",              // Optional (default: \"last_30_days\")\n  \"startDate\": \"2026-06-01\",             // Optional - Required only when period = \"custom\"\n  \"endDate\": \"2026-07-07\",               // Optional - Required only when period = \"custom\"\n  \"branch_id\": 1                          // Optional - Filter to a specific branch\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/order-status-breakdown",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "order-status-breakdown"
+              ]
+            },
+            "description": "Order counts + revenue grouped by OrderStatus (booked / accepted / design_review / preparing / label_create / shipped / ready_for_pickup / completed / cancelled) - for pie/bar/funnel chart."
+          },
+          "response": []
+        },
+        {
+          "name": "Order Channel Breakdown",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"last_30_days\",              // Optional (default: \"last_30_days\")\n  \"startDate\": \"2026-06-01\",             // Optional - Required only when period = \"custom\"\n  \"endDate\": \"2026-07-07\",               // Optional - Required only when period = \"custom\"\n  \"branch_id\": 1                          // Optional - Filter to a specific branch\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/order-channel-breakdown",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "order-channel-breakdown"
+              ]
+            },
+            "description": "Online store vs point-of-sale order split (excludes cancelled orders) - for a pie chart."
+          },
+          "response": []
+        },
+        {
+          "name": "Payment Method Breakdown",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"last_30_days\",              // Optional (default: \"last_30_days\")\n  \"startDate\": \"2026-06-01\",             // Optional - Required only when period = \"custom\"\n  \"endDate\": \"2026-07-07\",               // Optional - Required only when period = \"custom\"\n  \"branch_id\": 1                          // Optional (accepted but not used in this query)\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/payment-method-breakdown",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "payment-method-breakdown"
+              ]
+            },
+            "description": "Payment method split (stripe / paypal / cash / etc.) based on paid payments captured within the period - for a pie chart."
+          },
+          "response": []
+        },
+        {
+          "name": "Top Selling Products",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"last_30_days\",              // Optional (default: \"last_30_days\")\n  \"startDate\": \"2026-06-01\",             // Optional - Required only when period = \"custom\"\n  \"endDate\": \"2026-07-07\",               // Optional - Required only when period = \"custom\"\n  \"branch_id\": 1,                         // Optional (accepted but not used in this query)\n  \"limit\": 10                             // Optional (default: 10, min: 1, max: 50)\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/top-products",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "top-products"
+              ]
+            },
+            "description": "Best-selling products by units sold, with revenue - for a bar chart / table widget."
+          },
+          "response": []
+        },
+        {
+          "name": "Recent Orders",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"limit\": 10                             // Optional (default: 10, min: 1, max: 100)\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/recent-orders",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "recent-orders"
+              ]
+            },
+            "description": "Most recent orders - for a live-activity table widget. Note: `threshold` is accepted by the shared schema but has no effect on this endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Low Stock Alerts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"limit\": 10,                            // Optional (default: 10, min: 1, max: 100)\n  \"threshold\": 25                          // Optional (default: 5, min: 0) - quantity at or below this value is flagged\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/low-stock-alerts",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "low-stock-alerts"
+              ]
+            },
+            "description": "Products/variants at or below a stock threshold - for an alerts widget."
+          },
+          "response": []
+        },
+        {
+          "name": "Pending Actions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}dashboard/pending-actions",
+              "host": [
+                "{{BASE_URL}}dashboard"
+              ],
+              "path": [
+                "pending-actions"
+              ]
+            },
+            "description": "No request body. Counts of everything currently waiting on staff action: pending reviews, pending refunds, design_review orders, booked orders awaiting acceptance, unresolved customer messages, locked accounts - for a \"needs attention\" widget."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Report",
+      "item": [
+        {
+          "name": "Sales Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-06-01\",             // Required\n  \"endDate\": \"2026-07-07\",               // Required (must be after startDate)\n  \"groupBy\": \"day\",                       // Optional (default: \"day\") - day / week / month / product / category\n  \"branch_id\": 1                          // Optional - Filter to a specific branch (only applies when groupBy is day/week/month)\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}reports/sales",
+              "host": [
+                "{{BASE_URL}}reports"
+              ],
+              "path": [
+                "sales"
+              ]
+            },
+            "description": "Sales over time (day/week/month, with orders/subtotal/discount/tax/shipping/revenue rows + a summary total) OR sales broken down by product/category (label/units_sold/revenue rows, no summary)."
+          },
+          "response": []
+        },
+        {
+          "name": "Order Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"page\": 1,                              // Optional (default: 1)\n  \"limit\": 20,                            // Optional (default: 10)\n  \"startDate\": \"2026-06-01\",             // Required\n  \"endDate\": \"2026-07-07\",               // Required (must be after startDate)\n  \"status\": \"shipped\",                    // Optional - Enum: booked / accepted / design_review / preparing / label_create / shipped / ready_for_pickup / completed / cancelled\n  \"payment_status\": \"paid\",               // Optional - Enum: pending / paid / failed / refunded\n  \"branch_id\": 1                          // Optional - Filter to a specific branch\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}reports/orders",
+              "host": [
+                "{{BASE_URL}}reports"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Detailed, paginated, filterable order list with summary totals (total_orders, total_revenue, total_discount, total_tax, total_shipping) - for the order report table/export. Returns a `pagination` object alongside `payload`."
+          },
+          "response": []
+        },
+        {
+          "name": "Inventory Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_id\": 1,                       // Optional - Filter by product category\n  \"low_stock_only\": false,                // Optional (default: false) - only return items at/below threshold\n  \"threshold\": 5                          // Optional (default: 5, min: 0) - used only when low_stock_only = true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}reports/inventory",
+              "host": [
+                "{{BASE_URL}}reports"
+              ],
+              "path": [
+                "inventory"
+              ]
+            },
+            "description": "Full inventory listing with stock valuation (cost_price * quantity), status (out_of_stock/low_stock/in_stock), plus a summary (total_skus, total_units, total_stock_value, out_of_stock_count, low_stock_count) - for stock reports."
+          },
+          "response": []
+        },
+        {
+          "name": "Customer Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-06-01\",             // Optional - If provided, only orders on/after this date count toward spend\n  \"endDate\": \"2026-07-07\",               // Optional - If provided, only orders on/before this date count toward spend (must be after startDate if both given)\n  \"limit\": 20                             // Optional (default: 20, min: 1, max: 200)\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}reports/customers",
+              "host": [
+                "{{BASE_URL}}reports"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "description": "Top customers ranked by total spend (excludes cancelled orders), with total orders, total spent, and avg order value."
+          },
+          "response": []
+        },
+        {
+          "name": "Product Performance Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-06-01\",             // Required\n  \"endDate\": \"2026-07-07\",               // Required (must be after startDate)\n  \"category_id\": 5,                       // Optional - Filter by product category\n  \"sortBy\": \"revenue\",                    // Optional (default: \"revenue\") - revenue / units_sold\n  \"limit\": 50                             // Optional (default: 50, min: 1, max: 500)\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}reports/product-performance",
+              "host": [
+                "{{BASE_URL}}reports"
+              ],
+              "path": [
+                "product-performance"
+              ]
+            },
+            "description": "Per-product revenue, units sold, cost, profit, and margin % - for a profitability report. Requires product.cost_price to be populated for meaningful margin figures."
+          },
+          "response": []
+        },
+        {
+          "name": "Financial Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-06-01\",             // Required\n  \"endDate\": \"2026-07-07\"                // Required (must be after startDate)\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}reports/financial",
+              "host": [
+                "{{BASE_URL}}reports"
+              ],
+              "path": [
+                "financial"
+              ]
+            },
+            "description": "Revenue, discounts, tax collected, shipping collected, gateway fees, refunds, and net revenue, broken down by payment method - for a P&L-style financial report."
+          },
+          "response": []
+        },
+        {
+          "name": "Coupon Usage Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2026-06-01\",             // Optional - Filters by coupon usage created_at\n  \"endDate\": \"2026-07-07\",               // Optional - Filters by coupon usage created_at (must be after startDate if both given)\n  \"coupon_id\":1                          // Optional - Filter to a single coupon\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}reports/coupon-usage",
+              "host": [
+                "{{BASE_URL}}reports"
+              ],
+              "path": [
+                "coupon-usage"
+              ]
+            },
+            "description": "Redemption counts + total discount value given out, per coupon - sorted by times used descending."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Global Search (Frontend)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData).to.have.property('payload');",
+                  "    pm.expect(jsonData.success).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Payload has query, total and result buckets', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    const payload = jsonData.payload;",
+                  "    pm.expect(payload).to.have.property('query');",
+                  "    pm.expect(payload).to.have.property('total');",
+                  "    pm.expect(payload).to.have.property('products');",
+                  "    pm.expect(payload).to.have.property('categories');",
+                  "    pm.expect(payload).to.have.property('blogs');",
+                  "    pm.expect(payload).to.have.property('pages');",
+                  "});",
+                  "",
+                  "pm.test('Result buckets are arrays', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    const payload = jsonData.payload;",
+                  "    pm.expect(Array.isArray(payload.products)).to.be.true;",
+                  "    pm.expect(Array.isArray(payload.categories)).to.be.true;",
+                  "    pm.expect(Array.isArray(payload.blogs)).to.be.true;",
+                  "    pm.expect(Array.isArray(payload.pages)).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{X_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-password",
+                "value": "{{X_API_PASSWORD}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"t-shirt\",                                  // Required (min 2, max 100 chars)\n  \"types\": [\"products\", \"categories\"],                // Optional - omit to search all: products / categories / blogs / pages\n  \"limit\": 5                                          // Optional (default: 5, min: 1, max: 20) - max results PER type\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}search/frontend",
+              "host": [
+                "{{BASE_URL}}search"
+              ],
+              "path": [
+                "frontend"
+              ]
+            },
+            "description": "Public global search - matches active/published products, categories, blogs and content pages against the query."
+          },
+          "response": []
+        },
+        {
+          "name": "Global Search (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData).to.have.property('payload');",
+                  "    pm.expect(jsonData.success).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Payload has query, total and result buckets', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    const payload = jsonData.payload;",
+                  "    pm.expect(payload).to.have.property('query');",
+                  "    pm.expect(payload).to.have.property('total');",
+                  "    pm.expect(payload).to.have.property('products');",
+                  "    pm.expect(payload).to.have.property('orders');",
+                  "    pm.expect(payload).to.have.property('users');",
+                  "    pm.expect(payload).to.have.property('vendors');",
+                  "    pm.expect(payload).to.have.property('coupons');",
+                  "});",
+                  "",
+                  "pm.test('Result buckets are arrays', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    const payload = jsonData.payload;",
+                  "    pm.expect(Array.isArray(payload.products)).to.be.true;",
+                  "    pm.expect(Array.isArray(payload.orders)).to.be.true;",
+                  "    pm.expect(Array.isArray(payload.users)).to.be.true;",
+                  "    pm.expect(Array.isArray(payload.vendors)).to.be.true;",
+                  "    pm.expect(Array.isArray(payload.coupons)).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"ammar\",                                    // Required (min 2, max 100 chars)\n  \"types\": [\"orders\", \"users\"],                       // Optional - omit to search all: products / orders / users / vendors / coupons\n  \"limit\": 5                                          // Optional (default: 5, min: 1, max: 20) - max results PER type\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}search/admin",
+              "host": [
+                "{{BASE_URL}}search"
+              ],
+              "path": [
+                "admin"
+              ]
+            },
+            "description": "Staff-only global search - matches products, orders, users, vendors and coupons against the query (includes inactive/soft-visible records, requires bearer token)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Activity Log",
+      "item": [
+        {
+          "name": "Get By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData.success).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Color has required properties', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    const color = jsonData.data;",
+                  "    pm.expect(color).to.have.property('id');",
+                  "    pm.expect(color).to.have.property('name');",
+                  "    pm.expect(color).to.have.property('hex_code');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}activity-logs/get/:id",
+              "host": [
+                "{{BASE_URL}}activity-logs"
+              ],
+              "path": [
+                "get",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All (List with Filters)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.success).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Response data is an array', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(Array.isArray(jsonData.data)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Pagination info is included', function() {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.pagination) {",
+                  "        pm.expect(jsonData.pagination).to.have.property('page');",
+                  "        pm.expect(jsonData.pagination).to.have.property('total');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"page\": 1,\n    \"limit\": 20,\n    \"filters\": {\n        // \"entity_type\": \"product\", //optional  (e.g. vendor, product, order etc...)\n        // \"entity_id\": 1, //optional\n        // \"action\": \"CREATE\", //optional ( e.g. \"CREATE\", \"UPDATE\", \"DELETE\", \"STATUS_CHANGE\")\n        // \"performed_by\": 1, //optional\n        // \"notes\": \"\", //optional\n        // \"created_at\": 1 //optional\n    }\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}activity-logs/list",
+              "host": [
+                "{{BASE_URL}}activity-logs"
+              ],
+              "path": [
+                "list"
               ]
             }
           },
