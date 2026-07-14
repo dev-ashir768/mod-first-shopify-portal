@@ -506,3 +506,326 @@ export const createReview = (body: Json) =>
   createRecord("reviews", body, "Review created.");
 export const updateReview = (id: number | string, body: Json) =>
   updateRecord(`reviews/${id}`, body, "Review updated.");
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+export const DASHBOARD_PERIODS = [
+  "today",
+  "yesterday",
+  "last_7_days",
+  "last_30_days",
+  "this_month",
+  "last_month",
+  "this_year",
+  "custom",
+] as const;
+export type DashboardPeriod = (typeof DASHBOARD_PERIODS)[number];
+
+interface DashboardBody {
+  period?: DashboardPeriod;
+  startDate?: string;
+  endDate?: string;
+  branch_id?: number;
+  limit?: number;
+  threshold?: number;
+}
+
+export interface OverviewMetric {
+  value: number;
+  change_pct?: number | null;
+  change_direction?: "up" | "down" | "neutral" | null;
+}
+
+export interface DashboardOverview {
+  revenue?: OverviewMetric;
+  orders?: OverviewMetric;
+  new_customers?: OverviewMetric;
+  aov?: OverviewMetric; // average order value
+  pending_orders?: number;
+  low_stock_count?: number;
+  active_customers?: number;
+  active_products?: number;
+  [key: string]: unknown;
+}
+
+export interface TrendPoint {
+  date?: string;
+  label?: string;
+  revenue?: number;
+  orders?: number;
+  customers?: number;
+  count?: number;
+  [key: string]: unknown;
+}
+
+export interface BreakdownItem {
+  label?: string;
+  name?: string;
+  status?: string;
+  channel?: string;
+  method?: string;
+  count?: number;
+  orders?: number;
+  revenue?: number;
+  percentage?: number;
+  [key: string]: unknown;
+}
+
+export interface TopProduct {
+  id?: number | string;
+  name?: string;
+  title?: string;
+  units_sold?: number;
+  quantity_sold?: number;
+  revenue?: number;
+  image?: string | null;
+  [key: string]: unknown;
+}
+
+export interface RecentOrder {
+  id: number | string;
+  order_number?: string;
+  customer?: string | { full_name?: string; name?: string } | null;
+  total?: number;
+  status?: string;
+  payment_status?: string;
+  created_at?: string;
+  items_count?: number;
+  [key: string]: unknown;
+}
+
+export interface LowStockItem {
+  id: number | string;
+  name?: string;
+  title?: string;
+  sku?: string | null;
+  quantity?: number;
+  threshold?: number;
+  image?: string | null;
+  [key: string]: unknown;
+}
+
+export interface PendingActions {
+  pending_reviews?: number;
+  pending_refunds?: number;
+  design_review_orders?: number;
+  booked_orders?: number;
+  unresolved_messages?: number;
+  locked_users?: number;
+  [key: string]: unknown;
+}
+
+function dashParse<T>(data: Json): T {
+  return (data?.payload ?? data?.data ?? data) as T;
+}
+
+export async function getDashboardOverview(body: DashboardBody = {}): Promise<DashboardOverview> {
+  const { data } = await api.post("dashboard/overview", body);
+  return dashParse<DashboardOverview>(data);
+}
+
+export async function getRevenueTrend(body: DashboardBody = {}): Promise<TrendPoint[]> {
+  const { data } = await api.post("dashboard/revenue-trend", body);
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.trend ?? p?.data ?? p?.rows ?? []) as TrendPoint[];
+}
+
+export async function getCustomerGrowthTrend(body: DashboardBody = {}): Promise<TrendPoint[]> {
+  const { data } = await api.post("dashboard/customer-growth-trend", body);
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.trend ?? p?.data ?? p?.rows ?? []) as TrendPoint[];
+}
+
+export async function getOrderStatusBreakdown(body: DashboardBody = {}): Promise<BreakdownItem[]> {
+  const { data } = await api.post("dashboard/order-status-breakdown", body);
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.breakdown ?? p?.data ?? p?.rows ?? []) as BreakdownItem[];
+}
+
+export async function getOrderChannelBreakdown(body: DashboardBody = {}): Promise<BreakdownItem[]> {
+  const { data } = await api.post("dashboard/order-channel-breakdown", body);
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.breakdown ?? p?.data ?? p?.rows ?? []) as BreakdownItem[];
+}
+
+export async function getPaymentMethodBreakdown(body: DashboardBody = {}): Promise<BreakdownItem[]> {
+  const { data } = await api.post("dashboard/payment-method-breakdown", body);
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.breakdown ?? p?.data ?? p?.rows ?? []) as BreakdownItem[];
+}
+
+export async function getTopProducts(body: DashboardBody = {}): Promise<TopProduct[]> {
+  const { data } = await api.post("dashboard/top-products", body);
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.products ?? p?.data ?? p?.rows ?? []) as TopProduct[];
+}
+
+export async function getRecentOrders(limit = 10): Promise<RecentOrder[]> {
+  const { data } = await api.post("dashboard/recent-orders", { limit });
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.orders ?? p?.data ?? p?.rows ?? []) as RecentOrder[];
+}
+
+export async function getLowStockAlerts(limit = 10, threshold = 10): Promise<LowStockItem[]> {
+  const { data } = await api.post("dashboard/low-stock-alerts", { limit, threshold });
+  const p = dashParse<Json>(data);
+  return (Array.isArray(p) ? p : p?.products ?? p?.items ?? p?.data ?? p?.rows ?? []) as LowStockItem[];
+}
+
+export async function getPendingActions(): Promise<PendingActions> {
+  const { data } = await api.get("dashboard/pending-actions");
+  return dashParse<PendingActions>(data);
+}
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
+
+export const SALES_GROUP_BY = ["day", "week", "month", "product", "category"] as const;
+export type SalesGroupBy = (typeof SALES_GROUP_BY)[number];
+
+export const ORDER_STATUSES_REPORT = [
+  "booked","accepted","design_review","preparing",
+  "label_create","shipped","ready_for_pickup","completed","cancelled",
+] as const;
+
+export const PAYMENT_STATUSES_REPORT = ["pending","paid","partially_paid","refunded","failed"] as const;
+
+// Sales
+export interface SalesDataRow {
+  date?: string; label?: string; period?: string;
+  orders?: number; subtotal?: number; discount?: number;
+  tax?: number; shipping?: number; revenue?: number;
+  units_sold?: number; [k: string]: unknown;
+}
+export interface SalesSummary {
+  orders?: number; subtotal?: number; discount?: number;
+  tax?: number; shipping?: number; revenue?: number; [k: string]: unknown;
+}
+export interface SalesReport { data: SalesDataRow[]; summary?: SalesSummary }
+
+export async function getSalesReport(body: {
+  startDate: string; endDate: string; groupBy?: SalesGroupBy; branch_id?: number;
+}): Promise<SalesReport> {
+  const { data } = await api.post("reports/sales", body);
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const rows: SalesDataRow[] = Array.isArray(p) ? p : p.data ?? p.rows ?? p.items ?? [];
+  const summary: SalesSummary = Array.isArray(p) ? {} : p.summary ?? p.totals ?? {};
+  return { data: rows, summary };
+}
+
+// Orders
+export interface OrderReportRow {
+  id: number | string; order_number?: string;
+  customer?: string | { full_name?: string; name?: string } | null;
+  status?: string; payment_status?: string;
+  subtotal?: number; discount?: number; tax?: number;
+  shipping?: number; total?: number; items_count?: number;
+  created_at?: string; [k: string]: unknown;
+}
+export interface OrderReportSummary {
+  total_orders?: number; total_revenue?: number;
+  total_discount?: number; total_tax?: number; total_shipping?: number; [k: string]: unknown;
+}
+export interface OrderReport {
+  rows: OrderReportRow[]; summary?: OrderReportSummary;
+  total: number; totalPages: number;
+}
+export async function getOrderReport(body: {
+  startDate: string; endDate: string; page?: number; limit?: number;
+  status?: string; payment_status?: string;
+}): Promise<OrderReport> {
+  const { data } = await api.post("reports/orders", body);
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const rows: OrderReportRow[] = Array.isArray(p) ? p : p.rows ?? p.orders ?? p.data ?? [];
+  const summary = (Array.isArray(p) ? {} : p.summary ?? p.totals ?? {}) as OrderReportSummary;
+  const pag: Json = data?.pagination ?? p.pagination ?? {};
+  const total = pag.total ?? p.total ?? rows.length;
+  const limit = body.limit ?? 20;
+  const totalPages = pag.totalPages ?? Math.max(1, Math.ceil(total / limit));
+  return { rows, summary, total, totalPages };
+}
+
+// Inventory
+export interface InventoryReportRow {
+  id: number | string; name?: string; title?: string; sku?: string | null;
+  category?: string | null; quantity?: number; cost_price?: number | null;
+  stock_value?: number | null; status?: "in_stock" | "low_stock" | "out_of_stock";
+  [k: string]: unknown;
+}
+export interface InventoryReportSummary {
+  total_skus?: number; total_units?: number; total_stock_value?: number;
+  out_of_stock_count?: number; low_stock_count?: number; [k: string]: unknown;
+}
+export interface InventoryReport { rows: InventoryReportRow[]; summary?: InventoryReportSummary }
+export async function getInventoryReport(body?: {
+  category_id?: number; low_stock_only?: boolean; threshold?: number;
+}): Promise<InventoryReport> {
+  const { data } = await api.post("reports/inventory", body ?? {});
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const rows: InventoryReportRow[] = Array.isArray(p) ? p : p.items ?? p.rows ?? p.data ?? [];
+  const summary = (Array.isArray(p) ? {} : p.summary ?? p.totals ?? {}) as InventoryReportSummary;
+  return { rows, summary };
+}
+
+// Customers
+export interface CustomerReportRow {
+  id: number | string; full_name?: string; name?: string; email?: string;
+  total_orders?: number; total_spent?: number; avg_order_value?: number;
+  last_order_at?: string; [k: string]: unknown;
+}
+export async function getCustomerReport(body?: {
+  startDate?: string; endDate?: string; limit?: number;
+}): Promise<CustomerReportRow[]> {
+  const { data } = await api.post("reports/customers", body ?? {});
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  return (Array.isArray(p) ? p : p.customers ?? p.rows ?? p.data ?? []) as CustomerReportRow[];
+}
+
+// Product Performance
+export interface ProductPerfRow {
+  id: number | string; name?: string; title?: string; category?: string | null;
+  units_sold?: number; revenue?: number; cost?: number;
+  profit?: number; margin?: number; [k: string]: unknown;
+}
+export async function getProductPerformanceReport(body: {
+  startDate: string; endDate: string; category_id?: number;
+  sortBy?: "revenue" | "units_sold"; limit?: number;
+}): Promise<ProductPerfRow[]> {
+  const { data } = await api.post("reports/product-performance", body);
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  return (Array.isArray(p) ? p : p.products ?? p.rows ?? p.data ?? []) as ProductPerfRow[];
+}
+
+// Financial
+export interface FinancialBreakdownRow {
+  method?: string; payment_method?: string;
+  revenue?: number; discounts?: number; tax?: number;
+  shipping?: number; fees?: number; refunds?: number; net_revenue?: number;
+  [k: string]: unknown;
+}
+export interface FinancialReport {
+  breakdown: FinancialBreakdownRow[];
+  totals?: FinancialBreakdownRow;
+}
+export async function getFinancialReport(body: {
+  startDate: string; endDate: string;
+}): Promise<FinancialReport> {
+  const { data } = await api.post("reports/financial", body);
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const breakdown = (Array.isArray(p) ? p : p.breakdown ?? p.rows ?? p.data ?? []) as FinancialBreakdownRow[];
+  const totals = (Array.isArray(p) ? undefined : p.totals ?? p.summary) as FinancialBreakdownRow | undefined;
+  return { breakdown, totals };
+}
+
+// Coupon Usage
+export interface CouponUsageRow {
+  coupon_id?: number | string; id?: number | string;
+  code?: string; name?: string;
+  times_used?: number; total_discount?: number; [k: string]: unknown;
+}
+export async function getCouponUsageReport(body?: {
+  startDate?: string; endDate?: string; coupon_id?: number;
+}): Promise<CouponUsageRow[]> {
+  const { data } = await api.post("reports/coupon-usage", body ?? {});
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  return (Array.isArray(p) ? p : p.coupons ?? p.rows ?? p.data ?? []) as CouponUsageRow[];
+}
