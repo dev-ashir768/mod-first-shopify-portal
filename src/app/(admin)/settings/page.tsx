@@ -8,11 +8,14 @@ import {
   Building2,
   ChevronRight,
   CreditCard,
+  Eye,
+  EyeOff,
   FileText,
   Globe,
   Landmark,
   Languages,
   ListTree,
+  Loader2,
   MapPin,
   Package,
   Palette,
@@ -30,6 +33,7 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,9 +53,19 @@ import { MenusSection } from "@/components/settings/menus-section";
 import { MenuRightsSection } from "@/components/settings/menu-rights-section";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { changePassword } from "@/lib/auth-api";
+import { apiErrorMessage } from "@/lib/auth-api";
+import {
+  changePasswordSchema,
+  type ChangePasswordValues,
+} from "@/lib/validations";
 
 type SectionKey =
   | "general"
+  | "account"
   | "users"
   | "branches"
   | "sizes"
@@ -65,6 +79,7 @@ const settingsNav: {
   key?: SectionKey;
 }[] = [
   { label: "General", icon: Store, key: "general" },
+  { label: "Account", icon: UserRound, key: "account" },
   { label: "Users", icon: Users, key: "users" },
   { label: "Branches", icon: Building2, key: "branches" },
   { label: "Sizes", icon: Ruler, key: "sizes" },
@@ -93,6 +108,7 @@ const sectionMeta: Record<
   { title: string; icon: React.ComponentType<{ className?: string }> }
 > = {
   general: { title: "General", icon: Store },
+  account: { title: "Account", icon: UserRound },
   users: { title: "Users", icon: Users },
   branches: { title: "Branches", icon: Building2 },
   sizes: { title: "Sizes", icon: Ruler },
@@ -100,6 +116,116 @@ const sectionMeta: Record<
   menus: { title: "Menus", icon: ListTree },
   "menu-rights": { title: "Menu rights", icon: ShieldCheck },
 };
+
+function ChangePasswordSection() {
+  const [showCurrent, setShowCurrent] = React.useState(false);
+  const [showNew, setShowNew] = React.useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ChangePasswordValues>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
+  });
+
+  const onSubmit = async (values: ChangePasswordValues) => {
+    try {
+      const message = await changePassword(values);
+      toast.success(message);
+      reset();
+    } catch (error) {
+      toast.error(apiErrorMessage(error, "Couldn't change password."));
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardContent className="pt-6">
+          <h2 className="mb-1 text-sm font-semibold">Change password</h2>
+          <p className="mb-5 text-xs text-muted-foreground">
+            Update your account password. You&apos;ll need your current password to confirm.
+          </p>
+          <form onSubmit={handleSubmit(onSubmit)} className="max-w-sm space-y-4" noValidate>
+            <div className="space-y-1.5">
+              <Label htmlFor="currentPassword">Current password</Label>
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showCurrent ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="Enter current password"
+                  className="pr-10"
+                  aria-invalid={!!errors.currentPassword}
+                  {...register("currentPassword")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent((v) => !v)}
+                  aria-label={showCurrent ? "Hide password" : "Show password"}
+                  className="absolute inset-y-0 right-0 flex w-10 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground"
+                >
+                  {showCurrent ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              {errors.currentPassword && (
+                <p className="text-sm text-destructive">{errors.currentPassword.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="newPassword">New password</Label>
+              <div className="relative">
+                <Input
+                  id="newPassword"
+                  type={showNew ? "text" : "password"}
+                  autoComplete="new-password"
+                  placeholder="At least 8 characters"
+                  className="pr-10"
+                  aria-invalid={!!errors.newPassword}
+                  {...register("newPassword")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew((v) => !v)}
+                  aria-label={showNew ? "Hide password" : "Show password"}
+                  className="absolute inset-y-0 right-0 flex w-10 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground"
+                >
+                  {showNew ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              {errors.newPassword && (
+                <p className="text-sm text-destructive">{errors.newPassword.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="confirmPassword">Confirm new password</Label>
+              <Input
+                id="confirmPassword"
+                type={showNew ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="Re-enter new password"
+                aria-invalid={!!errors.confirmPassword}
+                {...register("confirmPassword")}
+              />
+              {errors.confirmPassword && (
+                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+              )}
+            </div>
+
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+              {isSubmitting ? "Saving…" : "Update password"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -216,6 +342,7 @@ export default function SettingsPage() {
               <h1 className="text-xl font-bold">{sectionMeta[section].title}</h1>
             </div>
 
+            {section === "account" && <ChangePasswordSection />}
             {section === "users" && <UsersSection />}
             {section === "branches" && <BranchesSection />}
             {section === "sizes" && <SizesSection />}

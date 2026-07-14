@@ -115,3 +115,12 @@ export async function resetPassword(values: {
   const { data } = await api.post("auth/reset-password", values);
   return data?.message ?? "Password reset successfully.";
 }
+
+export async function changePassword(values: {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}): Promise<string> {
+  const { data } = await api.post("auth/change-password", values);
+  return data?.message ?? "Password changed successfully.";
+}
