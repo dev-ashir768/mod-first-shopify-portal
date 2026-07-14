@@ -105,12 +105,22 @@ const columns: ColumnDef<ProductRow>[] = [
   {
     accessorKey: "category",
     header: "Category",
-    cell: ({ row }) => row.original.category ?? "—",
+    cell: ({ row }) => {
+      const cat = row.original.category;
+      if (!cat) return "—";
+      if (typeof cat === "object" && cat !== null) return (cat as { name?: string }).name ?? "—";
+      return String(cat);
+    },
   },
   {
     accessorKey: "vendor",
     header: "Vendor",
-    cell: ({ row }) => row.original.vendor ?? "—",
+    cell: ({ row }) => {
+      const v = row.original.vendor;
+      if (!v) return "—";
+      if (typeof v === "object" && v !== null) return (v as { name?: string }).name ?? "—";
+      return String(v);
+    },
   },
   {
     accessorKey: "price",

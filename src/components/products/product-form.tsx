@@ -38,11 +38,13 @@ import {
   createProduct,
   updateProduct,
   fetchAllProductCategories,
+  fetchAllVendors,
   PRODUCT_STATUSES,
   WEIGHT_UNITS,
   type ProductDetailRow,
   type ProductImageRow,
   type ProductCategoryRow,
+  type VendorRow,
 } from "@/lib/admin-api";
 import { cn } from "@/lib/utils";
 
@@ -271,6 +273,64 @@ function CategorySelect({
   );
 }
 
+// ─── Vendor Select ───────────────────────────────────────────────────────────
+
+function VendorSelect({
+  value,
+  onChange,
+}: {
+  value?: string;
+  onChange: (v: string | null) => void;
+}) {
+  const [vendors, setVendors] = React.useState<VendorRow[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetchAllVendors()
+      .then(setVendors)
+      .catch(() => setVendors([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const items: Record<string, string> = Object.fromEntries([
+    ["", "No vendor"],
+    ...vendors.map((v) => [String(v.id), v.name]),
+  ]);
+
+  const resolvedValue = value
+    ? vendors.find((v) => String(v.id) === value || v.name === value)
+      ? String(vendors.find((v) => String(v.id) === value || v.name === value)!.id)
+      : value
+    : "";
+
+  return (
+    <Select
+      items={items}
+      value={resolvedValue}
+      onValueChange={onChange}
+      disabled={loading}
+    >
+      <SelectTrigger className="w-full">
+        {loading ? (
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" /> Loading…
+          </span>
+        ) : (
+          <SelectValue placeholder="Select vendor" />
+        )}
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="">No vendor</SelectItem>
+        {vendors.map((v) => (
+          <SelectItem key={v.id} value={String(v.id)}>
+            {v.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 // ─── Section Card ─────────────────────────────────────────────────────────────
 
 function Section({
@@ -330,7 +390,9 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       requires_shipping: product?.requires_shipping ?? true,
       weight: product?.weight != null ? String(product.weight) : "",
       weight_unit: product?.weight_unit ?? "kg",
-      vendor: product?.vendor ?? "",
+      vendor: typeof product?.vendor === "object" && product?.vendor !== null
+        ? String((product.vendor as { id?: number | string }).id ?? "")
+        : product?.vendor ?? "",
       category: product?.category ?? "",
       tags: product?.tags ?? "",
       slug: product?.slug ?? "",
@@ -905,8 +967,14 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="p-vendor">Vendor</Label>
-                <Input id="p-vendor" placeholder="modeFirst" {...register("vendor")} />
+                <Label>Vendor</Label>
+                <Controller
+                  control={control}
+                  name="vendor"
+                  render={({ field }) => (
+                    <VendorSelect value={field.value} onChange={(v) => field.onChange(v ?? "")} />
+                  )}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="p-tags">Tags</Label>

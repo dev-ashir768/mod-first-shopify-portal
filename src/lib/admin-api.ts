@@ -388,16 +388,22 @@ export async function listProducts(
   params: ListParams
 ): Promise<ListResult<ProductRow>> {
   const { data } = await api.post("products/list", buildBody(params));
-  const p: Json = data?.payload ?? data?.data ?? data ?? {};
-  const rows: ProductRow[] = Array.isArray(p)
-    ? p
-    : p.rows ?? p.items ?? p.products ?? p.list ?? p.data ?? [];
+  const payload = data?.payload ?? data?.data ?? data ?? {};
+  const rawRows: Json[] = Array.isArray(payload)
+    ? payload
+    : payload.rows ?? payload.items ?? payload.products ?? payload.list ?? payload.data ?? [];
+  // Normalize API field name differences (name→title, base_price→price, etc.)
+  const rows: ProductRow[] = rawRows.map((r) => ({
+    ...r,
+    title: r.title ?? r.name ?? "",
+    price: r.price != null ? r.price : r.base_price != null ? parseFloat(r.base_price) : null,
+    featured_image: r.featured_image ?? r.image ?? r.thumbnail ?? null,
+  }));
+  const pagination = data?.pagination ?? {};
   const total: number =
-    p.total ?? p.count ?? p.totalRecords ?? p.pagination?.total ?? rows.length;
+    pagination.total ?? payload.total ?? payload.count ?? payload.totalRecords ?? rows.length;
   const totalPages: number =
-    p.totalPages ??
-    p.pagination?.totalPages ??
-    Math.max(1, Math.ceil(total / params.limit));
+    pagination.totalPages ?? payload.totalPages ?? Math.max(1, Math.ceil(total / params.limit));
   return { rows, total, totalPages };
 }
 
@@ -417,6 +423,22 @@ export async function createProduct(
 
 export const updateProduct = (id: number | string, body: Json) =>
   updateRecord(`products/${id}`, body, "Product updated.");
+
+// ─── Vendors ─────────────────────────────────────────────────────────────────
+
+export interface VendorRow {
+  id: number | string;
+  name: string;
+  slug?: string;
+  is_active?: boolean;
+  created_at?: string;
+}
+
+export async function fetchAllVendors(): Promise<VendorRow[]> {
+  const { data } = await api.post("vendors/list", { page: 1, limit: 200 });
+  const result = parseList<VendorRow>(data, 200);
+  return result.rows;
+}
 
 // ─── Product Categories ───────────────────────────────────────────────────────
 

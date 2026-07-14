@@ -65,14 +65,15 @@ const columns: ColumnDef<BranchRow>[] = [
   {
     accessorKey: "manager_name",
     header: "Manager",
+    size: 220,
     cell: ({ row }) => {
       const b = row.original;
       if (!b.manager_name && !b.manager_email) return "—";
       return (
-        <div className="min-w-0">
-          <p className="truncate">{b.manager_name ?? "—"}</p>
+        <div style={{ minWidth: 180 }}>
+          <p className="whitespace-nowrap font-medium">{b.manager_name ?? "—"}</p>
           {b.manager_email && (
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="whitespace-nowrap text-xs text-muted-foreground">
               {b.manager_email}
             </p>
           )}
@@ -83,14 +84,15 @@ const columns: ColumnDef<BranchRow>[] = [
   {
     accessorKey: "phone",
     header: "Contact",
+    size: 240,
     cell: ({ row }) => {
       const b = row.original;
       if (!b.phone && !b.email) return "—";
       return (
-        <div className="min-w-0">
-          <p className="truncate">{b.phone ?? "—"}</p>
+        <div style={{ minWidth: 200 }}>
+          <p className="whitespace-nowrap font-medium">{b.phone ?? "—"}</p>
           {b.email && (
-            <p className="truncate text-xs text-muted-foreground">{b.email}</p>
+            <p className="whitespace-nowrap text-xs text-muted-foreground">{b.email}</p>
           )}
         </div>
       );

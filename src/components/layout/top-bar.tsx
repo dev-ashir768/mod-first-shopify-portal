@@ -10,7 +10,6 @@ import {
   Package,
   Search,
   Settings,
-  ShoppingBag,
   ShoppingCart,
   Users,
 } from "lucide-react";
@@ -73,12 +72,12 @@ export function TopBar() {
     <header className="fixed inset-x-0 top-0 z-50 flex h-14 items-center gap-3 bg-[#1a1a1a] px-3">
       <div className="flex flex-1 items-center gap-2">
         <SidebarTrigger className="text-neutral-300 hover:bg-white/10 hover:text-white md:hidden" />
-        <span className="flex size-7 items-center justify-center rounded-md bg-brand text-brand-foreground">
-          <ShoppingBag className="size-4" />
-        </span>
-        <span className="hidden text-sm font-semibold text-white sm:inline">
-          modeFirst
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/branding/logo_white.png"
+          alt="modeFirst"
+          className="h-7 w-auto"
+        />
       </div>
 
       <div className="flex w-full max-w-xl justify-center">

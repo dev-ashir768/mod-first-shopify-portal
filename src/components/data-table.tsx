@@ -91,7 +91,6 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col gap-3">
-      {(searchKey || toolbar) && (
       <div className="flex items-center gap-2">
         {searchKey && (
           <div className="relative flex-1 max-w-sm">
@@ -112,7 +111,7 @@ export function DataTable<TData, TValue>({
             render={
               <Button variant="outline" className="ml-auto">
                 <SlidersHorizontal className="size-4" />
-                <span className="hidden sm:inline">View</span>
+                <span className="hidden sm:inline">Columns</span>
               </Button>
             }
           />
@@ -133,10 +132,9 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      )}
 
       <div className="rounded-lg bg-card ring-1 ring-black/8">
-        <div className="overflow-x-auto lg:overflow-x-visible">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -182,11 +180,28 @@ export function DataTable<TData, TValue>({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center text-muted-foreground"
-                  >
-                    No results.
+                  <TableCell colSpan={columns.length} className="py-16">
+                    <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                      <svg
+                        width="64"
+                        height="64"
+                        viewBox="0 0 64 64"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <rect x="8" y="16" width="48" height="36" rx="4" fill="currentColor" fillOpacity="0.06" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.5" />
+                        <rect x="8" y="16" width="48" height="10" rx="4" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.5" />
+                        <line x1="16" y1="35" x2="32" y2="35" stroke="currentColor" strokeOpacity="0.25" strokeWidth="1.5" strokeLinecap="round" />
+                        <line x1="16" y1="42" x2="26" y2="42" stroke="currentColor" strokeOpacity="0.18" strokeWidth="1.5" strokeLinecap="round" />
+                        <circle cx="46" cy="44" r="10" fill="var(--background, white)" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.5" />
+                        <line x1="43" y1="44" x2="49" y2="44" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                      <div className="text-center">
+                        <p className="text-sm font-medium text-foreground">No results found</p>
+                        <p className="mt-0.5 text-xs">Try adjusting your filters or search query.</p>
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}

@@ -21,10 +21,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const AUTH_PATHS = ["auth/login", "auth/send-otp", "auth/verify-otp", "auth/forgot-password", "auth/reset-password"];
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const url: string = error.config?.url ?? "";
+    const isAuthRoute = AUTH_PATHS.some((p) => url.includes(p));
+    if (error.response?.status === 401 && !isAuthRoute) {
       useAuthStore.getState().logout();
       if (typeof window !== "undefined") {
         window.location.href = "/login";

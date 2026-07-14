@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, ShoppingBag } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -64,13 +64,15 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="w-full max-w-[420px]">
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-brand text-brand-foreground ring-1 ring-black/10">
-            <ShoppingBag className="size-5" />
-          </span>
-          <span className="text-2xl font-bold tracking-tight text-foreground">
-            modeFirst
-          </span>
+        <div className="mb-6 flex items-center justify-center">
+          <div className="flex items-center justify-center rounded-xl bg-[#1a1a1a] px-5 py-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/branding/logo_white.png"
+              alt="modeFirst"
+              className="h-8 w-auto"
+            />
+          </div>
         </div>
 
         <Card>
