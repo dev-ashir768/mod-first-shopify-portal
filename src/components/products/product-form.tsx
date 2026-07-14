@@ -137,11 +137,15 @@ function ProductImageGrid({
       {images.map((img, i) => (
         <div key={i} className="group relative aspect-square">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imgUrl(img.url)}
-            alt={img.alt ?? `Product image ${i + 1}`}
-            className="size-full rounded-lg border border-border object-cover"
-          />
+          {imgUrl(img.url) ? (
+            <img
+              src={imgUrl(img.url)}
+              alt={img.alt ?? `Product image ${i + 1}`}
+              className="size-full rounded-lg border border-border object-cover"
+            />
+          ) : (
+            <div className="size-full rounded-lg border border-border bg-muted" />
+          )}
           {i === 0 && (
             <Badge className="absolute top-1 left-1 px-1.5 py-0.5 text-[10px]">
               Featured
@@ -393,11 +397,14 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       vendor: typeof product?.vendor === "object" && product?.vendor !== null
         ? String((product.vendor as { id?: number | string }).id ?? "")
         : product?.vendor ?? "",
-      category: typeof product?.category === "object" && product?.category !== null
-        ? String((product.category as { id?: number | string }).id ?? "")
-        : product?.category ?? "",
+      category: product?.category_id != null
+        ? String(product.category_id)
+        : typeof product?.category === "object" && product?.category !== null
+          ? String((product.category as { id?: number | string }).id ?? "")
+          : product?.category ?? "",
       tags: product?.tags ?? "",
-      slug: product?.slug ?? "",
+      slug: product?.slug
+        ?? (product?.canonical_url ? (product.canonical_url.split("/products/")[1] ?? "") : ""),
       meta_title: product?.meta_title ?? "",
       meta_description: product?.meta_description ?? "",
       variants: (product?.variants ?? []).map((v) => ({
@@ -1011,7 +1018,9 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                   {watch("meta_title") || watch("title") || "Product title"}
                 </p>
                 <p className="text-[#006621] dark:text-[#4db97e] truncate">
-                  yourstore.com/products/{watch("slug") || "product-handle"}
+                  {product?.canonical_url
+                    ? (() => { try { return new URL(product.canonical_url).host; } catch { return "yourstore.com"; } })()
+                    : "yourstore.com"}/products/{watch("slug") || "product-handle"}
                 </p>
                 <p className="text-muted-foreground line-clamp-2 mt-0.5">
                   {watch("meta_description") || "Product description will appear here in search results."}
@@ -1019,7 +1028,19 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="p-slug">URL handle</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="p-slug">URL handle</Label>
+                  {product?.canonical_url && (
+                    <a
+                      href={product.canonical_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      View on store <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </div>
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-muted-foreground shrink-0">/products/</span>
                   <Input

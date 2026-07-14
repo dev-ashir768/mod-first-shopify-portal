@@ -381,6 +381,8 @@ export interface ProductDetailRow extends ProductRow {
   tags?: string | null;
   meta_title?: string | null;
   meta_description?: string | null;
+  canonical_url?: string | null;
+  category_id?: number | null;
   images?: ProductImageRow[];
   variants?: ProductVariantRow[];
   faqs?: ProductFaqRow[];
