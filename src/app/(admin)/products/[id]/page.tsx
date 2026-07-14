@@ -45,8 +45,14 @@ export default function EditProductPage() {
 
   if (error || !product) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 py-24 text-muted-foreground">
-        <p>{error ?? "Product not found."}</p>
+      <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" stroke="currentColor" strokeOpacity="0.2" strokeWidth="1.5" fill="currentColor" fillOpacity="0.05" />
+          <path d="M24 16v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="24" cy="31" r="1.5" fill="currentColor" />
+        </svg>
+        <p className="text-sm font-medium text-foreground">Product not found</p>
+        <p className="text-xs">{error?.startsWith("<!") ? "This product could not be loaded." : (error ?? "Product not found.")}</p>
       </div>
     );
   }

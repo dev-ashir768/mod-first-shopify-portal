@@ -22,7 +22,7 @@ import { DateRangePicker } from "@/components/date-range-picker";
 import { StatusBadge } from "@/components/status-badge";
 import { apiErrorMessage } from "@/lib/auth-api";
 import { listProducts, type ProductRow } from "@/lib/admin-api";
-import { cn } from "@/lib/utils";
+import { cn, imgUrl } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
@@ -50,7 +50,7 @@ const columns: ColumnDef<ProductRow>[] = [
           {r.featured_image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={r.featured_image}
+              src={imgUrl(r.featured_image)}
               alt={r.title}
               className="size-10 shrink-0 rounded-lg border border-border object-cover"
             />

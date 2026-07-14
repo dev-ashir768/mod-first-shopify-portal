@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { apiErrorMessage } from "@/lib/auth-api";
 import { uploadImage, uploadVideo } from "@/lib/upload-api";
-import { cn } from "@/lib/utils";
+import { cn, imgUrl } from "@/lib/utils";
 
 /**
  * Theme-matched single file uploader backed by the Upload APIs.
@@ -64,7 +64,7 @@ export function MediaUpload({
           {kind === "image" ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={value}
+              src={imgUrl(value)}
               alt="Uploaded preview"
               className="size-16 rounded-lg border border-border object-cover"
             />

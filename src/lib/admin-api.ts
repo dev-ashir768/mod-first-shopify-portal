@@ -84,10 +84,12 @@ function parseList<T>(data: Json, limit: number): ListResult<T> {
   const rows: T[] = Array.isArray(p)
     ? p
     : p.rows ?? p.items ?? p.list ?? p.users ?? p.branches ?? p.data ?? [];
+  // API may put pagination at root level (data.pagination) or inside payload
+  const pg: Json = data?.pagination ?? p.pagination ?? {};
   const total: number =
-    p.total ?? p.count ?? p.totalRecords ?? p.pagination?.total ?? rows.length;
+    pg.total ?? p.total ?? p.count ?? p.totalRecords ?? rows.length;
   const totalPages: number =
-    p.totalPages ?? p.pagination?.totalPages ?? Math.max(1, Math.ceil(total / limit));
+    pg.totalPages ?? p.totalPages ?? Math.max(1, Math.ceil(total / limit));
   return { rows, total, totalPages };
 }
 
@@ -393,11 +395,11 @@ export async function listProducts(
     ? payload
     : payload.rows ?? payload.items ?? payload.products ?? payload.list ?? payload.data ?? [];
   // Normalize API field name differences (name→title, base_price→price, etc.)
-  const rows: ProductRow[] = rawRows.map((r) => ({
-    ...r,
-    title: r.title ?? r.name ?? "",
-    price: r.price != null ? r.price : r.base_price != null ? parseFloat(r.base_price) : null,
-    featured_image: r.featured_image ?? r.image ?? r.thumbnail ?? null,
+  const rows = rawRows.map((r): ProductRow => ({
+    ...r as ProductRow,
+    title: (r.title ?? r.name ?? "") as string,
+    price: r.price != null ? (r.price as number) : r.base_price != null ? parseFloat(r.base_price as string) : null,
+    featured_image: (r.featured_image ?? r.image ?? r.thumbnail ?? null) as string | null,
   }));
   const pagination = data?.pagination ?? {};
   const total: number =
@@ -408,7 +410,7 @@ export async function listProducts(
 }
 
 export async function getProduct(id: number | string): Promise<ProductDetailRow> {
-  const { data } = await api.get(`products/${id}`);
+  const { data } = await api.get(`products/get/${id}`);
   return data?.payload ?? data?.data ?? data;
 }
 

@@ -46,7 +46,7 @@ import {
   type ProductCategoryRow,
   type VendorRow,
 } from "@/lib/admin-api";
-import { cn } from "@/lib/utils";
+import { cn, imgUrl } from "@/lib/utils";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
@@ -138,7 +138,7 @@ function ProductImageGrid({
         <div key={i} className="group relative aspect-square">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={img.url}
+            src={imgUrl(img.url)}
             alt={img.alt ?? `Product image ${i + 1}`}
             className="size-full rounded-lg border border-border object-cover"
           />
@@ -393,7 +393,9 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       vendor: typeof product?.vendor === "object" && product?.vendor !== null
         ? String((product.vendor as { id?: number | string }).id ?? "")
         : product?.vendor ?? "",
-      category: product?.category ?? "",
+      category: typeof product?.category === "object" && product?.category !== null
+        ? String((product.category as { id?: number | string }).id ?? "")
+        : product?.category ?? "",
       tags: product?.tags ?? "",
       slug: product?.slug ?? "",
       meta_title: product?.meta_title ?? "",
@@ -419,7 +421,10 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
     fields: variantFields,
     append: appendVariant,
     remove: removeVariant,
+    move: moveVariant,
   } = useFieldArray({ control, name: "variants" });
+
+  const dragIdx = React.useRef<number | null>(null);
 
   const {
     fields: faqFields,
@@ -803,9 +808,22 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                     </thead>
                     <tbody>
                       {variantFields.map((field, idx) => (
-                        <tr key={field.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                        <tr
+                          key={field.id}
+                          draggable
+                          onDragStart={() => { dragIdx.current = idx; }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            if (dragIdx.current !== null && dragIdx.current !== idx) {
+                              moveVariant(dragIdx.current, idx);
+                              dragIdx.current = idx;
+                            }
+                          }}
+                          onDragEnd={() => { dragIdx.current = null; }}
+                          className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                        >
                           <td className="px-2 py-2 text-muted-foreground">
-                            <GripVertical className="size-4 cursor-grab" />
+                            <GripVertical className="size-4 cursor-grab active:cursor-grabbing" />
                           </td>
                           <td className="px-2 py-2 min-w-28">
                             <Input
@@ -925,7 +943,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
         </div>
 
         {/* ── Right sidebar ── */}
-        <div className="flex flex-col gap-4 lg:w-64 lg:shrink-0">
+        <div className="flex flex-col gap-4 lg:w-96 lg:shrink-0">
 
           {/* Status */}
           <Section title="Status">
