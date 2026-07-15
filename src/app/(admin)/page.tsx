@@ -19,15 +19,17 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/status-badge";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 import { apiErrorMessage } from "@/lib/auth-api";
+import type { DateRange } from "react-day-picker";
 import {
   DASHBOARD_PERIODS,
   getDashboardOverview, getRevenueTrend, getCustomerGrowthTrend,
   getOrderStatusBreakdown, getOrderChannelBreakdown, getPaymentMethodBreakdown,
   getTopProducts, getRecentOrders, getLowStockAlerts, getPendingActions,
-  type DashboardPeriod, type DashboardOverview, type OverviewMetric, type TrendPoint,
+  type DashboardPeriod, type DashboardBody, type DashboardOverview, type OverviewMetric, type TrendPoint,
   type BreakdownItem, type TopProduct, type RecentOrder,
   type LowStockItem, type PendingActions,
 } from "@/lib/admin-api";
@@ -182,6 +184,7 @@ function greeting() {
 export default function HomePage() {
   const user = useAuthStore((s) => s.user);
   const [period, setPeriod] = React.useState<DashboardPeriod>("last_7_days");
+  const [customRange, setCustomRange] = React.useState<DateRange | undefined>();
 
   // KPIs
   const [overview, setOverview] = React.useState<DashboardOverview>({});
@@ -203,8 +206,15 @@ export default function HomePage() {
   const [widgetsLoading, setWidgetsLoading] = React.useState(true);
 
   React.useEffect(() => {
+    // Don't fetch when custom is selected but range not yet picked
+    if (period === "custom" && (!customRange?.from || !customRange?.to)) return;
+
     let cancelled = false;
-    const body = { period };
+    const body: DashboardBody = { period };
+    if (period === "custom" && customRange?.from && customRange?.to) {
+      body.startDate = format(customRange.from, "yyyy-MM-dd");
+      body.endDate = format(customRange.to, "yyyy-MM-dd");
+    }
 
     setKpiLoading(true);
     setChartsLoading(true);
@@ -234,7 +244,7 @@ export default function HomePage() {
       });
 
     return () => { cancelled = true; };
-  }, [period]);
+  }, [period, customRange]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -283,18 +293,28 @@ export default function HomePage() {
             Here&apos;s what&apos;s happening with your store today.
           </p>
         </div>
-        <Select value={period} onValueChange={(v) => v && setPeriod(v as DashboardPeriod)}>
-          <SelectTrigger className="w-44 bg-card">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {DASHBOARD_PERIODS.map((p) => (
-              <SelectItem key={p} value={p}>
-                {p.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          {period === "custom" && (
+            <DateRangePicker
+              value={customRange}
+              onChange={(r) => setCustomRange(r)}
+            />
+          )}
+          <Select items={Object.fromEntries(DASHBOARD_PERIODS.map((p) => [p, p.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())]))} value={period} onValueChange={(v) => { if (v) { setPeriod(v as DashboardPeriod); if (v !== "custom") setCustomRange(undefined); } }}>
+            <SelectTrigger className="w-44 bg-card">
+              <SelectValue>
+                {period.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {DASHBOARD_PERIODS.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Pending actions banner */}

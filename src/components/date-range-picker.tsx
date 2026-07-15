@@ -24,6 +24,13 @@ export function DateRangePicker({
   className?: string;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState<DateRange | undefined>(value);
+
+  // Sync draft when popover opens
+  const handleOpenChange = (o: boolean) => {
+    if (o) setDraft(value);
+    setOpen(o);
+  };
 
   const label = value?.from
     ? value.to
@@ -33,7 +40,7 @@ export function DateRangePicker({
 
   return (
     <div className={cn("flex items-center", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger
           render={
             <Button
@@ -53,9 +60,9 @@ export function DateRangePicker({
           <Calendar
             mode="range"
             numberOfMonths={2}
-            defaultMonth={value?.from ?? new Date()}
-            selected={value}
-            onSelect={onChange}
+            defaultMonth={draft?.from ?? value?.from ?? new Date()}
+            selected={draft}
+            onSelect={setDraft}
             disabled={{ after: new Date() }}
           />
           <div className="flex items-center justify-end gap-2 border-t p-2">
@@ -63,13 +70,20 @@ export function DateRangePicker({
               variant="outline"
               size="sm"
               onClick={() => {
+                setDraft(undefined);
                 onChange(undefined);
                 setOpen(false);
               }}
             >
               Clear
             </Button>
-            <Button size="sm" onClick={() => setOpen(false)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                onChange(draft);
+                setOpen(false);
+              }}
+            >
               Apply
             </Button>
           </div>
@@ -81,7 +95,10 @@ export function DateRangePicker({
           size="icon"
           className="rounded-l-none"
           aria-label="Clear date range"
-          onClick={() => onChange(undefined)}
+          onClick={() => {
+            setDraft(undefined);
+            onChange(undefined);
+          }}
         >
           <X className="size-4" />
         </Button>

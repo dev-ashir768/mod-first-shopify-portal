@@ -15,6 +15,7 @@ import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/date-range-picker";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -108,21 +109,10 @@ function DateControls({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-2">
-        <input
-          type="date"
-          value={range.from ? format(range.from, "yyyy-MM-dd") : ""}
-          onChange={(e) => onRange({ ...range, from: e.target.value ? new Date(e.target.value) : undefined })}
-          className="rounded-lg border border-input bg-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        <span className="text-muted-foreground text-sm">–</span>
-        <input
-          type="date"
-          value={range.to ? format(range.to, "yyyy-MM-dd") : ""}
-          onChange={(e) => onRange({ ...range, to: e.target.value ? new Date(e.target.value) : undefined })}
-          className="rounded-lg border border-input bg-card px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-      </div>
+      <DateRangePicker
+        value={range}
+        onChange={(r) => r && onRange(r)}
+      />
       {children}
     </div>
   );

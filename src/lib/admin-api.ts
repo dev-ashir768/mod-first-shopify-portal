@@ -521,7 +521,7 @@ export const DASHBOARD_PERIODS = [
 ] as const;
 export type DashboardPeriod = (typeof DASHBOARD_PERIODS)[number];
 
-interface DashboardBody {
+export interface DashboardBody {
   period?: DashboardPeriod;
   startDate?: string;
   endDate?: string;
