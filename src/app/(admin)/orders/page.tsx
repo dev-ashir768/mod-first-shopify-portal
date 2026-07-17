@@ -16,7 +16,7 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { apiErrorMessage } from "@/lib/auth-api";
 import {
-  listOrders, ORDER_STATUSES, PAYMENT_STATUSES, DELIVERY_TYPES,
+  listOrders, PAYMENT_STATUSES, DELIVERY_TYPES,
   type OrderRow,
 } from "@/lib/admin-api";
 import type { DateRange } from "react-day-picker";

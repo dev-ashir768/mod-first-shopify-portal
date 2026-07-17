@@ -419,7 +419,6 @@ export function CategoryForm({ category }: { category?: ProductCategoryRow }) {
 }
 
 function format(date: Date, fmt: string): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
   return fmt
     .replace("MMM", ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][date.getMonth()])
     .replace("d", String(date.getDate()))

@@ -4,7 +4,7 @@ import * as React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Loader2, Plus, Search } from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -307,7 +307,10 @@ function MenuDialog({
     },
   });
 
-  const watchedName = watch("name");
+  const watchedName = useWatch({
+    control,
+    name: "name",
+  });
   const slugDirty = React.useRef(false);
 
   React.useEffect(() => {

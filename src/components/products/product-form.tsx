@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -144,8 +144,8 @@ function ProductImageGrid({
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
       {images.map((img, i) => (
         <div key={i} className="group relative aspect-square">
-          {/* eslint-disable-next-line @next/next/no-img-element -- product image URLs are external, next/image needs configured domain */}
           {imgUrl(img.url) ? (
+            // eslint-disable-next-line @next/next/no-img-element -- product image URLs are external, next/image needs configured domain
             <img
               src={imgUrl(img.url)}
               alt={img.alt ?? `Product image ${i + 1}`}
@@ -461,11 +461,11 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
   } = useFieldArray({ control, name: "faqs" });
 
   // Auto-slug from title while creating
-  const title = watch("title");
-  const priceVal = watch("price");
-  const costVal = watch("cost_per_item");
-  const trackQty = watch("track_quantity");
-  const requiresShipping = watch("requires_shipping");
+  const title = useWatch({ control, name: "title" });
+  const priceVal = useWatch({ control, name: "price" });
+  const costVal = useWatch({ control, name: "cost_per_item" });
+  const trackQty = useWatch({ control, name: "track_quantity" });
+  const requiresShipping = useWatch({ control, name: "requires_shipping" });
 
   React.useEffect(() => {
     if (!isEdit && !getFieldState("slug").isDirty) {

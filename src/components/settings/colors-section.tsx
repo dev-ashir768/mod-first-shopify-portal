@@ -4,7 +4,7 @@ import * as React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Loader2, Plus, Search } from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -219,7 +219,10 @@ function ColorDialog({
     resolver: zodResolver(colorSchema),
     defaultValues: { name: "", hex_code: "#4169E1", status: "active" },
   });
-  const hex = watch("hex_code");
+  const hex = useWatch({
+    control,
+    name: "hex_code",
+  });
 
   React.useEffect(() => {
     if (open) {
