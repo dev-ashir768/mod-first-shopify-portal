@@ -39,25 +39,33 @@ import {
   updateProduct,
   fetchAllProductCategories,
   fetchAllVendors,
+  listColors,
+  listSizes,
   PRODUCT_STATUSES,
   WEIGHT_UNITS,
   type ProductDetailRow,
   type ProductImageRow,
   type ProductCategoryRow,
   type VendorRow,
+  type ColorRow,
+  type SizeRow,
 } from "@/lib/admin-api";
+import { api } from "@/lib/api";
 import { cn, imgUrl } from "@/lib/utils";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
+const VARIANT_STATUSES = ["active", "inactive", "out_of_stock"] as const;
+
 const variantSchema = z.object({
   id: z.union([z.number(), z.string()]).optional(),
-  title: z.string().min(1, "Title required"),
+  color_id: z.string().min(1, "Color required"),
+  size_id: z.string().min(1, "Size required"),
   sku: z.string().optional(),
-  barcode: z.string().optional(),
   price: z.string().optional(),
-  compare_at_price: z.string().optional(),
+  sale_price: z.string().optional(),
   quantity: z.string().optional(),
+  status: z.enum(VARIANT_STATUSES),
 });
 
 const faqSchema = z.object({
@@ -370,6 +378,18 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
   );
   const [imgUploading, setImgUploading] = React.useState(false);
 
+  // Colors + sizes for variant selects
+  const [colors, setColors] = React.useState<ColorRow[]>([]);
+  const [sizes, setSizes] = React.useState<SizeRow[]>([]);
+  React.useEffect(() => {
+    listColors({ page: 1, limit: 200, filters: { is_active: true } })
+      .then((r) => setColors(r.rows))
+      .catch(() => {});
+    listSizes({ page: 1, limit: 200, filters: { is_active: true } })
+      .then((r) => setSizes(r.rows))
+      .catch(() => {});
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -409,12 +429,13 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       meta_description: product?.meta_description ?? "",
       variants: (product?.variants ?? []).map((v) => ({
         id: v.id,
-        title: v.title,
+        color_id: v.color_id != null ? String(v.color_id) : "",
+        size_id: v.size_id != null ? String(v.size_id) : "",
         sku: v.sku ?? "",
-        barcode: v.barcode ?? "",
         price: v.price != null ? String(v.price) : "",
-        compare_at_price: v.compare_at_price != null ? String(v.compare_at_price) : "",
+        sale_price: v.sale_price != null ? String(v.sale_price) : "",
         quantity: v.quantity != null ? String(v.quantity) : "",
+        status: (v.status as typeof VARIANT_STATUSES[number]) ?? "active",
       })),
       faqs: (product?.faqs ?? []).map((f) => ({
         id: f.id,
@@ -476,12 +497,16 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
 
   const onSubmit = async (values: ProductFormValues) => {
     const body = {
-      title: values.title,
+      // API field names
+      name: values.title,
+      slug: values.slug || undefined,
       description: values.description || undefined,
+      short_desc: undefined as string | undefined,
       status: values.status,
-      price: parseNum(values.price),
-      compare_at_price: parseNum(values.compare_at_price),
-      cost_per_item: parseNum(values.cost_per_item),
+      // Pricing — API uses base_price / sale_price / cost_price
+      base_price: parseNum(values.price),
+      sale_price: parseNum(values.compare_at_price),
+      cost_price: parseNum(values.cost_per_item),
       sku: values.sku || undefined,
       barcode: values.barcode || undefined,
       track_quantity: values.track_quantity,
@@ -489,42 +514,61 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       requires_shipping: values.requires_shipping,
       weight: parseNum(values.weight),
       weight_unit: values.weight_unit || undefined,
+      vendor_id: undefined as number | undefined,
       vendor: values.vendor || undefined,
       category_id: values.category ? Number(values.category) || undefined : undefined,
-      category: values.category || undefined,
       tags: values.tags || undefined,
-      slug: values.slug || undefined,
       meta_title: values.meta_title || undefined,
       meta_description: values.meta_description || undefined,
+      is_active: true,
+      is_featured: false,
+      is_customizable: true,
       images: images.map((img, i) => ({
-        ...img,
+        url: img.url,
+        alt: img.alt,
         sort_order: i,
         is_featured: i === 0,
       })),
-      variants: values.variants.map((v) => ({
-        ...(v.id ? { id: v.id } : {}),
-        title: v.title,
-        sku: v.sku || undefined,
-        barcode: v.barcode || undefined,
-        price: parseNum(v.price),
-        compare_at_price: parseNum(v.compare_at_price),
-        quantity: parseInt2(v.quantity),
-      })),
+      // variants sent separately via /product-variants/bulk after product save
       faqs: values.faqs.map((f, i) => ({
         ...(f.id ? { id: f.id } : {}),
         question: f.question,
         answer: f.answer,
         sort_order: i,
       })),
-      is_active: true,
     };
+
+    const variantPayload = values.variants.map((v) => ({
+      ...(v.id ? { id: v.id } : {}),
+      color_id: Number(v.color_id),
+      size_id: Number(v.size_id),
+      sku: v.sku || undefined,
+      price: parseNum(v.price),
+      sale_price: parseNum(v.sale_price),
+      quantity: parseInt2(v.quantity),
+      status: v.status,
+      is_active: true,
+    }));
 
     try {
       if (isEdit) {
         const msg = await updateProduct(product.id, body);
+        // Bulk-upsert variants
+        if (variantPayload.length > 0) {
+          await api.post("product-variants/bulk", {
+            product_id: product.id,
+            variants: variantPayload,
+          });
+        }
         toast.success(msg);
       } else {
         const { id, message } = await createProduct(body);
+        if (variantPayload.length > 0) {
+          await api.post("product-variants/bulk", {
+            product_id: id,
+            variants: variantPayload,
+          });
+        }
         toast.success(message);
         router.push(`/products/${id}`);
       }
@@ -798,19 +842,22 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
             <div className="space-y-3">
               {variantFields.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No variants yet. Add variants for different options like size or colour.
+                  No variants yet. Add variants for different color + size combinations.
                 </p>
               ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border bg-muted/40">
-                        <th className="px-3 py-2 text-left font-medium text-muted-foreground w-8"></th>
-                        <th className="px-3 py-2 text-left font-medium">Variant</th>
-                        <th className="px-3 py-2 text-left font-medium">SKU</th>
-                        <th className="px-3 py-2 text-left font-medium">Price</th>
-                        <th className="px-3 py-2 text-left font-medium">Qty</th>
-                        <th className="px-3 py-2 w-8"></th>
+                        <th className="w-8 px-3 py-2 text-left font-medium text-muted-foreground"></th>
+                        <th className="min-w-32 px-3 py-2 text-left font-medium">Color</th>
+                        <th className="min-w-28 px-3 py-2 text-left font-medium">Size</th>
+                        <th className="min-w-24 px-3 py-2 text-left font-medium">SKU</th>
+                        <th className="min-w-24 px-3 py-2 text-left font-medium">Price</th>
+                        <th className="min-w-24 px-3 py-2 text-left font-medium">Sale price</th>
+                        <th className="min-w-20 px-3 py-2 text-left font-medium">Qty</th>
+                        <th className="min-w-28 px-3 py-2 text-left font-medium">Status</th>
+                        <th className="w-8 px-3 py-2"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -827,29 +874,73 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                             }
                           }}
                           onDragEnd={() => { dragIdx.current = null; }}
-                          className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                          className="border-b border-border transition-colors last:border-0 hover:bg-muted/30"
                         >
                           <td className="px-2 py-2 text-muted-foreground">
                             <GripVertical className="size-4 cursor-grab active:cursor-grabbing" />
                           </td>
-                          <td className="px-2 py-2 min-w-28">
-                            <Input
-                              placeholder="S / Red"
-                              className="h-8 text-sm"
-                              aria-invalid={!!errors.variants?.[idx]?.title}
-                              {...register(`variants.${idx}.title`)}
+                          {/* Color */}
+                          <td className="px-2 py-2">
+                            <Controller
+                              name={`variants.${idx}.color_id`}
+                              control={control}
+                              render={({ field: f }) => (
+                                <Select value={f.value} onValueChange={f.onChange}>
+                                  <SelectTrigger className={cn("h-8 text-sm", errors.variants?.[idx]?.color_id && "border-destructive")}>
+                                    <SelectValue placeholder="Color" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {colors.map((c) => (
+                                      <SelectItem key={c.id} value={String(c.id)}>
+                                        <span className="flex items-center gap-2">
+                                          {c.hex_code && (
+                                            <span
+                                              className="inline-block size-3 rounded-full border border-border"
+                                              style={{ backgroundColor: c.hex_code }}
+                                            />
+                                          )}
+                                          {c.name}
+                                        </span>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
                             />
                           </td>
-                          <td className="px-2 py-2 min-w-24">
+                          {/* Size */}
+                          <td className="px-2 py-2">
+                            <Controller
+                              name={`variants.${idx}.size_id`}
+                              control={control}
+                              render={({ field: f }) => (
+                                <Select value={f.value} onValueChange={f.onChange}>
+                                  <SelectTrigger className={cn("h-8 text-sm", errors.variants?.[idx]?.size_id && "border-destructive")}>
+                                    <SelectValue placeholder="Size" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {sizes.map((s) => (
+                                      <SelectItem key={s.id} value={String(s.id)}>
+                                        {s.display_name ?? s.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                          </td>
+                          {/* SKU */}
+                          <td className="px-2 py-2">
                             <Input
                               placeholder="SKU"
-                              className="h-8 text-sm font-mono"
+                              className="h-8 font-mono text-sm"
                               {...register(`variants.${idx}.sku`)}
                             />
                           </td>
-                          <td className="px-2 py-2 min-w-24">
+                          {/* Price */}
+                          <td className="px-2 py-2">
                             <div className="relative">
-                              <span className="absolute top-1/2 left-2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
                               <Input
                                 type="number"
                                 step="0.01"
@@ -860,13 +951,49 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                               />
                             </div>
                           </td>
-                          <td className="px-2 py-2 min-w-20">
+                          {/* Sale price */}
+                          <td className="px-2 py-2">
+                            <div className="relative">
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                className="h-8 pl-5 text-sm"
+                                {...register(`variants.${idx}.sale_price`)}
+                              />
+                            </div>
+                          </td>
+                          {/* Qty */}
+                          <td className="px-2 py-2">
                             <Input
                               type="number"
                               min="0"
                               placeholder="0"
                               className="h-8 text-sm"
                               {...register(`variants.${idx}.quantity`)}
+                            />
+                          </td>
+                          {/* Status */}
+                          <td className="px-2 py-2">
+                            <Controller
+                              name={`variants.${idx}.status`}
+                              control={control}
+                              render={({ field: f }) => (
+                                <Select value={f.value} onValueChange={f.onChange}>
+                                  <SelectTrigger className="h-8 text-sm capitalize">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {VARIANT_STATUSES.map((s) => (
+                                      <SelectItem key={s} value={s} className="capitalize">
+                                        {s.replace(/_/g, " ")}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
                             />
                           </td>
                           <td className="px-2 py-2">
@@ -890,7 +1017,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => appendVariant({ title: "", sku: "", barcode: "", price: "", compare_at_price: "", quantity: "" })}
+                onClick={() => appendVariant({ color_id: "", size_id: "", sku: "", price: "", sale_price: "", quantity: "", status: "active" })}
               >
                 <Plus className="size-4" />
                 Add variant

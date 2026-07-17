@@ -83,7 +83,7 @@ function parseList<T>(data: Json, limit: number): ListResult<T> {
   const p: Json = data?.payload ?? data?.data ?? data ?? {};
   const rows: T[] = Array.isArray(p)
     ? p
-    : p.rows ?? p.items ?? p.list ?? p.users ?? p.branches ?? p.data ?? [];
+    : p.rows ?? p.items ?? p.list ?? p.users ?? p.branches ?? p.orders ?? p.customers ?? p.products ?? p.data ?? [];
   // API may put pagination at root level (data.pagination) or inside payload
   const pg: Json = data?.pagination ?? p.pagination ?? {};
   const total: number =
@@ -91,6 +91,70 @@ function parseList<T>(data: Json, limit: number): ListResult<T> {
   const totalPages: number =
     pg.totalPages ?? p.totalPages ?? Math.max(1, Math.ceil(total / limit));
   return { rows, total, totalPages };
+}
+
+// ─── Order types ──────────────────────────────────────────────────────────────
+
+export const ORDER_STATUSES = [
+  "booked", "accepted", "design_review", "preparing",
+  "label_create", "shipped", "ready_for_pickup", "completed", "cancelled",
+] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export const PAYMENT_STATUSES = ["pending", "paid", "failed", "refunded"] as const;
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
+export const DELIVERY_TYPES = ["home_delivery", "store_pickup"] as const;
+
+export interface OrderCustomer {
+  id?: number | string;
+  full_name?: string;
+  email?: string;
+  phone?: string;
+}
+
+export interface OrderRow {
+  id: number | string;
+  order_number?: string;
+  status?: string;
+  payment_status?: string;
+  delivery_type?: string;
+  total?: number;
+  subtotal?: number;
+  discount?: number;
+  tax?: number;
+  shipping?: number;
+  items_count?: number;
+  customer?: OrderCustomer | string | null;
+  email?: string;
+  created_at?: string;
+  [k: string]: unknown;
+}
+
+export interface ListOrdersParams {
+  page: number;
+  limit: number;
+  dateRange?: DateRange;
+  status?: string;
+  payment_status?: string;
+  delivery_type?: string;
+  order_number?: string;
+  email?: string;
+}
+
+export async function listOrders(params: ListOrdersParams): Promise<ListResult<OrderRow>> {
+  const body: Json = { page: params.page, limit: params.limit };
+  if (params.dateRange?.from) body.startDate = format(params.dateRange.from, "yyyy-MM-dd");
+  if (params.dateRange?.to) body.endDate = format(params.dateRange.to, "yyyy-MM-dd");
+  const filters: Json = {};
+  if (params.status) filters.status = params.status;
+  if (params.payment_status) filters.payment_status = params.payment_status;
+  if (params.delivery_type) filters.delivery_type = params.delivery_type;
+  if (params.order_number) filters.order_number = params.order_number;
+  if (params.email) filters.email = params.email;
+  if (Object.keys(filters).length) body.filters = filters;
+  const { data } = await api.post("orders/list", body);
+  return parseList<OrderRow>(data, params.limit);
 }
 
 export async function listUsers(params: ListParams): Promise<ListResult<UserRow>> {
@@ -337,12 +401,16 @@ export interface ProductImageRow {
 
 export interface ProductVariantRow {
   id?: number | string;
-  title: string;
+  color_id?: number | string | null;
+  size_id?: number | string | null;
+  title?: string;
   sku?: string | null;
   barcode?: string | null;
   price?: number | null;
+  sale_price?: number | null;
   compare_at_price?: number | null;
   quantity?: number;
+  status?: string;
   is_active?: boolean;
 }
 
@@ -452,9 +520,15 @@ export interface ProductCategoryRow {
   slug: string;
   description?: string | null;
   parent_id?: number | null;
-  parent?: { name?: string } | null;
+  parent?: { id?: number | string; name?: string } | null;
+  image?: string | null;
+  image_url?: string | null;
+  banner?: string | null;
+  icon?: string | null;
   is_active?: boolean;
+  products_count?: number;
   created_at?: string;
+  [k: string]: unknown;
 }
 
 export async function listProductCategories(
@@ -828,4 +902,45 @@ export async function getCouponUsageReport(body?: {
   const { data } = await api.post("reports/coupon-usage", body ?? {});
   const p: Json = data?.payload ?? data?.data ?? data ?? {};
   return (Array.isArray(p) ? p : p.coupons ?? p.rows ?? p.data ?? []) as CouponUsageRow[];
+}
+
+// ─── Global Search (Admin) ────────────────────────────────────────────────────
+
+export type AdminSearchType = "products" | "orders" | "users" | "vendors" | "coupons";
+
+export interface AdminSearchItem {
+  id: number | string;
+  title?: string;
+  name?: string;
+  full_name?: string;
+  order_number?: string;
+  email?: string;
+  code?: string;
+  status?: string;
+  total?: number;
+  price?: number;
+  base_price?: number;
+  image?: string | null;
+  image_url?: string | null;
+  [k: string]: unknown;
+}
+
+export interface AdminSearchResults {
+  products?: AdminSearchItem[];
+  orders?: AdminSearchItem[];
+  users?: AdminSearchItem[];
+  vendors?: AdminSearchItem[];
+  coupons?: AdminSearchItem[];
+}
+
+export async function globalAdminSearch(
+  query: string,
+  types?: AdminSearchType[],
+  limit = 5
+): Promise<AdminSearchResults> {
+  const body: Json = { query, limit };
+  if (types?.length) body.types = types;
+  const { data } = await api.post("search/admin", body);
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  return (p.results ?? p) as AdminSearchResults;
 }

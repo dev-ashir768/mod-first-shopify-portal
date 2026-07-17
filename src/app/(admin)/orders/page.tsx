@@ -1,33 +1,59 @@
 "use client";
 
 import * as React from "react";
+import { format, subDays } from "date-fns";
 import { type ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Download } from "lucide-react";
+import { Download, Search, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
-import { currency, orders, type Order } from "@/lib/mock-data";
+import { apiErrorMessage } from "@/lib/auth-api";
+import {
+  listOrders, ORDER_STATUSES, PAYMENT_STATUSES, DELIVERY_TYPES,
+  type OrderRow,
+} from "@/lib/admin-api";
+import type { DateRange } from "react-day-picker";
 
-const columns: ColumnDef<Order>[] = [
+const PAGE_LIMIT = 20;
+
+const fmt$ = (n?: number | null) =>
+  n != null ? `$${Number(n).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—";
+
+const custName = (c: OrderRow["customer"]) => {
+  if (!c) return "Guest";
+  if (typeof c === "string") return c;
+  return (c as { full_name?: string }).full_name ?? "Guest";
+};
+
+const custEmail = (row: OrderRow) => {
+  if (row.email) return row.email;
+  const c = row.customer;
+  if (c && typeof c === "object") return (c as { email?: string }).email ?? "";
+  return "";
+};
+
+const columns: ColumnDef<OrderRow>[] = [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
-        indeterminate={
-          table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
+        onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onCheckedChange={(v) => row.toggleSelected(!!v)}
         onClick={(e) => e.stopPropagation()}
         aria-label="Select row"
       />
@@ -36,91 +62,148 @@ const columns: ColumnDef<Order>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "orderNumber",
+    accessorKey: "order_number",
     header: "Order",
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue("orderNumber")}</span>
+      <span className="font-mono text-sm font-medium">
+        {row.getValue("order_number") ?? `#${row.original.id}`}
+      </span>
     ),
   },
-  { accessorKey: "date", header: "Date" },
   {
-    accessorKey: "customer",
-    header: ({ column }) => (
-      <button
-        className="flex cursor-pointer items-center gap-1 hover:text-foreground"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Customer
-        <ArrowUpDown className="size-3" />
-      </button>
+    accessorKey: "created_at",
+    header: "Date",
+    cell: ({ row }) => {
+      const v = row.getValue<string>("created_at");
+      return v ? format(new Date(v), "MMM d, yyyy") : "—";
+    },
+  },
+  {
+    id: "customer",
+    header: "Customer",
+    cell: ({ row }) => (
+      <div>
+        <p className="font-medium">{custName(row.original)}</p>
+        <p className="text-xs text-muted-foreground">{custEmail(row.original)}</p>
+      </div>
     ),
   },
   {
     accessorKey: "total",
     header: () => <div className="text-right">Total</div>,
     cell: ({ row }) => (
-      <div className="text-right font-medium">
-        {currency(row.getValue("total"))}
-      </div>
+      <div className="text-right font-medium">{fmt$(row.getValue("total"))}</div>
     ),
   },
   {
-    accessorKey: "paymentStatus",
-    header: "Payment status",
-    cell: ({ row }) => <StatusBadge status={row.getValue("paymentStatus")} />,
+    accessorKey: "payment_status",
+    header: "Payment",
+    cell: ({ row }) => <StatusBadge status={row.getValue("payment_status") ?? "—"} />,
   },
   {
-    accessorKey: "fulfillmentStatus",
-    header: "Fulfillment status",
-    cell: ({ row }) => <StatusBadge status={row.getValue("fulfillmentStatus")} />,
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => <StatusBadge status={row.getValue("status") ?? "—"} />,
   },
   {
-    accessorKey: "items",
+    accessorKey: "delivery_type",
+    header: "Delivery",
+    cell: ({ row }) => {
+      const v = row.getValue<string>("delivery_type") ?? "";
+      return <span className="text-sm capitalize">{v.replace(/_/g, " ")}</span>;
+    },
+  },
+  {
+    accessorKey: "items_count",
     header: "Items",
-    cell: ({ row }) => `${row.getValue("items")} items`,
+    cell: ({ row }) => {
+      const n = row.getValue<number>("items_count");
+      return n != null ? `${n} item${n !== 1 ? "s" : ""}` : "—";
+    },
   },
-  { accessorKey: "deliveryMethod", header: "Delivery method" },
 ];
 
-const tabs = [
+// Tab → status filter mapping
+const TAB_STATUS: Record<string, string | undefined> = {
+  all: undefined,
+  pending: "booked",
+  in_progress: "preparing",
+  shipped: "shipped",
+  completed: "completed",
+  cancelled: "cancelled",
+};
+
+const TABS = [
   { value: "all", label: "All" },
-  { value: "unfulfilled", label: "Unfulfilled" },
-  { value: "unpaid", label: "Unpaid" },
-  { value: "refunded", label: "Refunded" },
-] as const;
+  { value: "pending", label: "Pending" },
+  { value: "in_progress", label: "In progress" },
+  { value: "shipped", label: "Shipped" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse rounded-md bg-muted ${className ?? ""}`} />;
+}
 
 export default function OrdersPage() {
-  const [tab, setTab] = React.useState<string>("all");
+  const [tab, setTab] = React.useState("all");
+  const [page, setPage] = React.useState(1);
+  const [rows, setRows] = React.useState<OrderRow[]>([]);
+  const [total, setTotal] = React.useState(0);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [loading, setLoading] = React.useState(false);
 
-  const filtered = React.useMemo(() => {
-    switch (tab) {
-      case "unfulfilled":
-        return orders.filter((o) => o.fulfillmentStatus !== "Fulfilled");
-      case "unpaid":
-        return orders.filter((o) => o.paymentStatus === "Pending");
-      case "refunded":
-        return orders.filter((o) => o.paymentStatus === "Refunded");
-      default:
-        return orders;
-    }
-  }, [tab]);
+  // Filters
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  });
+  const [payStatus, setPayStatus] = React.useState("all");
+  const [deliveryType, setDeliveryType] = React.useState("all");
+  const [search, setSearch] = React.useState("");
+  const [searchInput, setSearchInput] = React.useState("");
+
+  // Reset page when filters/tab change
+  React.useEffect(() => { setPage(1); }, [tab, dateRange, payStatus, deliveryType, search]);
+
+  const load = React.useCallback(() => {
+    setLoading(true);
+    listOrders({
+      page,
+      limit: PAGE_LIMIT,
+      dateRange,
+      status: TAB_STATUS[tab],
+      payment_status: payStatus === "all" ? undefined : payStatus,
+      delivery_type: deliveryType === "all" ? undefined : deliveryType,
+      order_number: search || undefined,
+    })
+      .then(({ rows: r, total: t, totalPages: tp }) => {
+        setRows(r); setTotal(t); setTotalPages(tp);
+      })
+      .catch((e) => toast.error(apiErrorMessage(e, "Couldn't load orders.")))
+      .finally(() => setLoading(false));
+  }, [page, tab, dateRange, payStatus, deliveryType, search]);
+
+  React.useEffect(() => { load(); }, [load]);
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Orders</h1>
         <div className="flex gap-2">
           <Button variant="outline">
-            <Download className="size-4" />
-            Export
+            <Download className="size-4" /> Export
           </Button>
           <Button>Create order</Button>
         </div>
       </div>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as string)}>
+      {/* Status tabs */}
+      <Tabs value={tab} onValueChange={(v) => v && setTab(v)}>
         <TabsList className="bg-transparent p-0">
-          {tabs.map((t) => (
+          {TABS.map((t) => (
             <TabsTrigger
               key={t.value}
               value={t.value}
@@ -132,12 +215,91 @@ export default function OrdersPage() {
         </TabsList>
       </Tabs>
 
-      <DataTable
-        columns={columns}
-        data={filtered}
-        searchKey="customer"
-        searchPlaceholder="Search by customer"
-      />
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Date range */}
+        <input
+          type="date"
+          value={dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : ""}
+          onChange={(e) => setDateRange((r) => ({ ...r, from: e.target.value ? new Date(e.target.value) : undefined }))}
+          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <span className="text-muted-foreground text-sm">–</span>
+        <input
+          type="date"
+          value={dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : ""}
+          onChange={(e) => setDateRange((r) => ({ ...r, to: e.target.value ? new Date(e.target.value) : undefined }))}
+          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+
+        {/* Payment status */}
+        <Select value={payStatus} onValueChange={(v) => setPayStatus(v ?? "all")}>
+          <SelectTrigger className="h-9 w-40 bg-card">
+            <SelectValue placeholder="Payment status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All payments</SelectItem>
+            {PAYMENT_STATUSES.map((s) => (
+              <SelectItem key={s} value={s}>{s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Delivery type */}
+        <Select value={deliveryType} onValueChange={(v) => setDeliveryType(v ?? "all")}>
+          <SelectTrigger className="h-9 w-44 bg-card">
+            <SelectValue placeholder="Delivery type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All delivery types</SelectItem>
+            {DELIVERY_TYPES.map((d) => (
+              <SelectItem key={d} value={d}>{d.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Order number search */}
+        <div className="flex items-center gap-1">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search order #"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setSearch(searchInput)}
+              className="h-9 rounded-lg border border-input bg-card pl-8 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring w-44"
+            />
+            {searchInput && (
+              <button onClick={() => { setSearchInput(""); setSearch(""); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setSearch(searchInput)}>Go</Button>
+        </div>
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+        </div>
+      ) : (
+        <DataTable columns={columns} data={rows} searchKey="" searchPlaceholder="" />
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">{total} orders</p>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+            <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
+            <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

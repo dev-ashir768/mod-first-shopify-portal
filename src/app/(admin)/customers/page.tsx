@@ -1,32 +1,46 @@
 "use client";
 
+import * as React from "react";
+import { format, subDays } from "date-fns";
 import { type ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Download, Plus, Upload } from "lucide-react";
+import { Download, Search, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
-import { currency, customers, type Customer } from "@/lib/mock-data";
+import { apiErrorMessage } from "@/lib/auth-api";
+import { listUsers, USER_ROLES, type UserRow } from "@/lib/admin-api";
+import type { DateRange } from "react-day-picker";
 
-const columns: ColumnDef<Customer>[] = [
+const PAGE_LIMIT = 20;
+
+const fmt$ = (n?: number | null) =>
+  n != null ? `$${Number(n).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "—";
+
+const initials = (name: string) =>
+  name.split(/\s+/).map((p) => p[0] ?? "").join("").slice(0, 2).toUpperCase() || "??";
+
+const columns: ColumnDef<UserRow>[] = [
   {
     id: "select",
     header: ({ table }) => (
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
-        indeterminate={
-          table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
+        onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
         aria-label="Select all"
       />
     ),
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onCheckedChange={(v) => row.toggleSelected(!!v)}
         aria-label="Select row"
       />
     ),
@@ -34,33 +48,19 @@ const columns: ColumnDef<Customer>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <button
-        className="flex cursor-pointer items-center gap-1 hover:text-foreground"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Customer
-        <ArrowUpDown className="size-3" />
-      </button>
-    ),
+    accessorKey: "full_name",
+    header: "Customer",
     cell: ({ row }) => {
-      const name = row.getValue<string>("name");
-      const initials = name
-        .split(" ")
-        .map((p) => p[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
+      const name = row.getValue<string>("full_name") ?? "";
       return (
         <div className="flex items-center gap-3">
           <Avatar className="size-8">
             <AvatarFallback className="bg-[#e0f0ff] text-xs font-semibold text-[#00527c]">
-              {initials}
+              {initials(name)}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium">{name}</p>
+            <p className="font-medium">{name || "—"}</p>
             <p className="text-xs text-muted-foreground">{row.original.email}</p>
           </div>
         </div>
@@ -68,56 +68,197 @@ const columns: ColumnDef<Customer>[] = [
     },
   },
   {
-    accessorKey: "emailSubscription",
-    header: "Email subscription",
-    cell: ({ row }) => <StatusBadge status={row.getValue("emailSubscription")} />,
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => {
+      const r = row.getValue<string>("role") ?? "";
+      return <span className="capitalize text-sm">{r.replace(/_/g, " ")}</span>;
+    },
   },
-  { accessorKey: "location", header: "Location" },
   {
-    accessorKey: "orders",
-    header: () => <div className="text-right">Orders</div>,
+    accessorKey: "phone",
+    header: "Phone",
+    cell: ({ row }) => row.getValue("phone") ?? "—",
+  },
+  {
+    accessorKey: "is_active",
+    header: "Status",
     cell: ({ row }) => (
-      <div className="text-right">{row.getValue("orders")} orders</div>
+      <StatusBadge
+        status={row.getValue("is_active") ? "Active" : "Inactive"}
+        tone={row.getValue("is_active") ? "success" : "neutral"}
+      />
     ),
   },
   {
-    accessorKey: "amountSpent",
+    accessorKey: "is_locked",
+    header: "Locked",
+    cell: ({ row }) =>
+      row.getValue("is_locked") ? (
+        <StatusBadge status="Locked" tone="critical" />
+      ) : null,
+  },
+  {
+    accessorKey: "total_orders",
+    header: () => <div className="text-right">Orders</div>,
+    cell: ({ row }) => {
+      const n = row.getValue<number>("total_orders");
+      return <div className="text-right">{n != null ? n : "—"}</div>;
+    },
+  },
+  {
+    accessorKey: "total_spent",
     header: () => <div className="text-right">Amount spent</div>,
     cell: ({ row }) => (
-      <div className="text-right font-medium">
-        {currency(row.getValue("amountSpent"))}
-      </div>
+      <div className="text-right font-medium">{fmt$(row.getValue("total_spent"))}</div>
     ),
+  },
+  {
+    accessorKey: "created_at",
+    header: "Joined",
+    cell: ({ row }) => {
+      const v = row.getValue<string>("created_at");
+      return v ? format(new Date(v), "MMM d, yyyy") : "—";
+    },
   },
 ];
 
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse rounded-md bg-muted ${className ?? ""}`} />;
+}
+
 export default function CustomersPage() {
+  const [page, setPage] = React.useState(1);
+  const [rows, setRows] = React.useState<UserRow[]>([]);
+  const [total, setTotal] = React.useState(0);
+  const [totalPages, setTotalPages] = React.useState(1);
+  const [loading, setLoading] = React.useState(false);
+
+  // Filters
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: undefined,
+    to: undefined,
+  });
+  const [role, setRole] = React.useState("all");
+  const [isActive, setIsActive] = React.useState("all");
+  const [searchInput, setSearchInput] = React.useState("");
+  const [search, setSearch] = React.useState("");
+
+  React.useEffect(() => { setPage(1); }, [dateRange, role, isActive, search]);
+
+  const load = React.useCallback(() => {
+    setLoading(true);
+    const filters: Record<string, unknown> = {};
+    if (role !== "all") filters.role = role;
+    if (isActive !== "all") filters.is_active = isActive === "active";
+    if (search) filters.full_name = search;
+
+    listUsers({ page, limit: PAGE_LIMIT, dateRange, filters })
+      .then(({ rows: r, total: t, totalPages: tp }) => {
+        setRows(r); setTotal(t); setTotalPages(tp);
+      })
+      .catch((e) => toast.error(apiErrorMessage(e, "Couldn't load customers.")))
+      .finally(() => setLoading(false));
+  }, [page, dateRange, role, isActive, search]);
+
+  React.useEffect(() => { load(); }, [load]);
+
   return (
     <div className="flex flex-col gap-4">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Customers</h1>
         <div className="flex gap-2">
           <Button variant="outline">
-            <Upload className="size-4" />
-            Import
-          </Button>
-          <Button variant="outline">
-            <Download className="size-4" />
-            Export
-          </Button>
-          <Button>
-            <Plus className="size-4" />
-            Add customer
+            <Download className="size-4" /> Export
           </Button>
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={customers}
-        searchKey="name"
-        searchPlaceholder="Search customers"
-      />
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Date range */}
+        <input
+          type="date"
+          value={dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : ""}
+          onChange={(e) => setDateRange((r) => ({ ...r, from: e.target.value ? new Date(e.target.value) : undefined }))}
+          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+        <span className="text-muted-foreground text-sm">–</span>
+        <input
+          type="date"
+          value={dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : ""}
+          onChange={(e) => setDateRange((r) => ({ ...r, to: e.target.value ? new Date(e.target.value) : undefined }))}
+          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+
+        {/* Role filter */}
+        <Select value={role} onValueChange={(v) => setRole(v ?? "all")}>
+          <SelectTrigger className="h-9 w-44 bg-card">
+            <SelectValue placeholder="All roles" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All roles</SelectItem>
+            {USER_ROLES.map((r) => (
+              <SelectItem key={r} value={r}>{r.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Active filter */}
+        <Select value={isActive} onValueChange={(v) => setIsActive(v ?? "all")}>
+          <SelectTrigger className="h-9 w-36 bg-card">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Name search */}
+        <div className="flex items-center gap-1">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by name"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && setSearch(searchInput)}
+              className="h-9 w-48 rounded-lg border border-input bg-card pl-8 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            {searchInput && (
+              <button onClick={() => { setSearchInput(""); setSearch(""); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setSearch(searchInput)}>Go</Button>
+        </div>
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+        </div>
+      ) : (
+        <DataTable columns={columns} data={rows} searchKey="" searchPlaceholder="" />
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">{total} customers</p>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
+            <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
+            <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
