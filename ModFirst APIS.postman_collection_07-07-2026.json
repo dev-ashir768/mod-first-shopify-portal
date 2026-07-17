@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "5bd84eba-b3a4-4058-a74d-b280f1d73197",
+    "_postman_id": "6e721027-146e-47b9-a3e1-3b70e890f365",
     "name": "ModFirst APIS Updated",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "28574662",
-    "_collection_link": "https://go.postman.co/collection/28574662-5bd84eba-b3a4-4058-a74d-b280f1d73197?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/28574662-6e721027-146e-47b9-a3e1-3b70e890f365?source=collection_link"
   },
   "item": [
     {
@@ -43,7 +43,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"ammar@outperformlabs.com\", // Required - Your registered email\r\n  \"password\": \"Ammar@1234\",              // Required - Account password\r\n  \"rememberMe\": true                     // Optional - If true, token lasts longer (default: false)\r\n}",
+              "raw": "{\r\n  \"email\": \"rajaammarali2003@gmail.com\", // Required - Your registered email\r\n  \"password\": \"Ah1@Ah1@\",              // Required - Account password\r\n  \"rememberMe\": true                     // Optional - If true, token lasts longer (default: false)\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -95,7 +95,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"ammar@outperformlabs.com\",  // Required - Email for which OTP was sent\r\n  \"otp\": \"010101\"                         // Required - 6 digit OTP received in email\r\n}",
+              "raw": "{\r\n  \"email\": \"rajaammarali2003@gmail.com\",  // Required - Email for which OTP was sent\r\n  \"otp\": \"010101\"                         // Required - 6 digit OTP received in email\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -575,7 +575,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n//   \"page\": 1,                                       // Optional (default: 1)\n//   \"limit\": 15,                                     // Optional (default: 10)\n  \"filters\": {\n    // \"name\": \"Hyattsville\",                         // Optional\n    // \"code\": \"HYA\",                                 // Optional\n    // \"city\": \"Hyattsville\",                         // Optional\n    // \"state\": \"MD\",                                 // Optional\n    // \"country\": \"United States\",                    // Optional\n    // \"email\": \"@modfirstapparel.com\",               // Optional\n    // \"phone\": \"240\",                                // Optional\n    \"manager_name\": \"Ammar Ali\"                       // Optional\n    // \"manager_email\": \"rajaammarali\",               // Optional\n    // \"is_active\": true,                             // Optional\n    // \"created_by\": 1                                // Optional\n  }\n//   \"startDate\": \"2026-01-01\",                       // Optional\n//   \"endDate\": \"2026-07-06\"                          // Optional\n}",
+              "raw": "{\n  \"page\": 1,                                       // Optional (default: 1)\n  \"limit\": 15,                                     // Optional (default: 10)\n  \"filters\": {\n    \"name\": \"Hyattsville\",                         // Optional\n    \"code\": \"HYA\",                                 // Optional\n    \"city\": \"Hyattsville\",                         // Optional\n    \"state\": \"MD\",                                 // Optional\n    \"country\": \"United States\",                    // Optional\n    \"email\": \"@modfirstapparel.com\",               // Optional\n    \"phone\": \"240\",                                // Optional\n    \"manager_name\": \"Ammar\",                       // Optional\n    \"manager_email\": \"rajaammarali\",               // Optional\n    \"is_active\": true,                             // Optional\n    \"created_by\": 1                                // Optional\n  },\n  \"startDate\": \"2026-01-01\",                       // Optional\n  \"endDate\": \"2026-07-06\"                          // Optional\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -651,7 +651,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n//   \"name\": \"Hyattsville Main Branch - Updated\",     // Optional\n//   \"code\": \"HYA001\",                                // Optional (must remain unique if changed)\n//   \"description\": \"Main production & retail branch in Hyattsville, Maryland\", // Optional\n//   \"address_line_1\": \"1234 Baltimore Avenue\",       // Optional\n//   \"address_line_2\": \"Suite 250\",                   // Optional\n//   \"city\": \"Hyattsville\",                           // Optional\n//   \"state\": \"MD\",                                   // Optional\n//   \"country\": \"United States\",                      // Optional\n//   \"postal_code\": \"20782\",                          // Optional\n//   \"phone\": \"+1 (240) 555-0123\",                    // Optional\n//   \"email\": \"hyattsville@modfirstapparel.com\",      // Optional\n  \"manager_name\": \"Ammar\"                      // Optional\n//   \"manager_email\": \"rajaammarali2003@gmail.com\",   // Optional\n//   \"manager_phone\": \"+1 (240) 555-0987\",            // Optional\n//   \"is_active\": true                                // Optional\n}",
+              "raw": "{\n  \"name\": \"Hyattsville Main Branch - Updated\",     // Optional\n  \"code\": \"HYA001\",                                // Optional (must remain unique if changed)\n  \"description\": \"Main production & retail branch in Hyattsville, Maryland\", // Optional\n  \"address_line_1\": \"1234 Baltimore Avenue\",       // Optional\n  \"address_line_2\": \"Suite 250\",                   // Optional\n  \"city\": \"Hyattsville\",                           // Optional\n  \"state\": \"MD\",                                   // Optional\n  \"country\": \"United States\",                      // Optional\n  \"postal_code\": \"20782\",                          // Optional\n  \"phone\": \"+1 (240) 555-0123\",                    // Optional\n  \"email\": \"hyattsville@modfirstapparel.com\",      // Optional\n  \"manager_name\": \"Ammar Ali\",                     // Optional\n  \"manager_email\": \"rajaammarali2003@gmail.com\",   // Optional\n  \"manager_phone\": \"+1 (240) 555-0987\",            // Optional\n  \"is_active\": true                                // Optional\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -971,7 +971,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"page\": 1,                                   // Optional\n  \"limit\": 20,                                 // Optional\n  \"startDate\": \"2026-01-01\",                   // Optional\n  \"endDate\": \"2026-07-13\",                      // Optional\n  \"filters\": {\n    // \"full_name\": \"Ammar\",                      // Optional\n    // \"email\": \"rajaammarali2003@gmail.com\"     // Optional\n    // \"role\": \"admin\",                           // Optional (customer/manager/super_admin/admin/designer/sales/support/content_writer/production/accountant)\n    // \"is_active\": true,                         // Optional\n    // \"is_locked\": false,                        // Optional\n    // \"is_admin\": true                           // Optional\n  }\n}",
+              "raw": "{\n  \"page\": 1,                                   // Optional\n  \"limit\": 20,                                 // Optional\n  \"startDate\": \"2026-01-01\",                   // Optional\n  \"endDate\": \"2026-07-08\",                      // Optional\n  \"filters\": {\n    // \"full_name\": \"Ammar\",                      // Optional\n    \"email\": \"rajaammarali2003@gmail.com\"     // Optional\n    // \"role\": \"admin\",                           // Optional (customer/manager/super_admin/admin/designer/sales/support/content_writer/production/accountant)\n    // \"is_active\": true,                         // Optional\n    // \"is_locked\": false,                        // Optional\n    // \"is_admin\": true                           // Optional\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1533,7 +1533,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"auto_lock_minutes\": 1     // Required (1 to 120)\n}",
+              "raw": "{\n  \"auto_lock_minutes\": 10     // Required (1 to 120)\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1818,13 +1818,13 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}website-settings/frontend/ModFirst",
+              "raw": "{{BASE_URL}}website-settings/frontend/ModFirst Apparel",
               "host": [
                 "{{BASE_URL}}website-settings"
               ],
               "path": [
                 "frontend",
-                "ModFirst"
+                "ModFirst Apparel"
               ]
             }
           },
@@ -1868,7 +1868,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"site_name\": \"ModFirst\",                                      // Optional\n//   \"site_tagline\": \"Premium Custom Apparel & Printing Services\",         // Optional\n//   \"site_description\": \"Leading custom printing company in Hyattsville, Maryland. Specializing in DTF transfers, embroidery, UV DTF stickers, t-shirts, hoodies, banners and promotional products. Fast turnaround, no minimum order.\", // Optional\n  \"logo_url\": \"/uploads/logo/logo-mf-1-1783955816460-869281420.png\",        // Optional\n  \"favicon_url\": \"/uploads/logo/favicon-1783955941748-665731589.png\",       // Optional\n  \"footer_logo_url\": \"/uploads/logo/logo-dark-lg-1783955978493-159876747.svg\", // Optional\n  \"primary_color\": \"#030303\",      // Optional\n  \"secondary_color\": \"#C2E105\",    // Optional\n  \"accent_color\": \"#FFFFFF\",       // Optional\n  \"font_primary\": \"Barlow\",        // Optional\n  \"font_heading\": \"Barlow\",        // Optional\n  \"contact_email\": \"info@modfirstapparel.com\",      // Optional\n  \"support_email\": \"support@modfirstapparel.com\",   // Optional\n  \"contact_phone\": \"+1 (240) 555-0123\",     // Optional\n  \"whatsapp_number\": \"+1 (240) 555-0123\",   // Optional\n  \"address\": \"Hyattsville, Maryland, USA\",  // Optional\n  \"city\": \"Hyattsville\",                    // Optional\n  \"country_code\": \"US\",                     // Optional\n  \"postal_code\": \"20782\",                   // Optional\n  \"province_code\": \"MD\",                    // Optional\n  \"business_hours\": \"Monday - Friday: 9:00 AM - 6:00 PM | Saturday: 10:00 AM - 4:00 PM\", // Optional\n  \"facebook_url\": \"https://facebook.com/modfirstapparel\",     // Optional\n  \"instagram_url\": \"https://instagram.com/modfirstapparel\",   // Optional\n  \"twitter_url\": \"https://twitter.com/modfirstapparel\",       // Optional\n  \"linkedin_url\": \"\",                                         // Optional\n  \"youtube_url\": \"\",                                          // Optional\n  \"tiktok_url\": \"https://tiktok.com/@modfirstapparel\",        // Optional\n  \"pinterest_url\": \"\",                                        // Optional\n  \"playstore_url\": \"\",   // Optional\n  \"appstore_url\": \"\",    // Optional\n  \"currency\": \"USD\",           // Optional\n  \"currency_symbol\": \"$\",      // Optional\n  \"tax_percentage\": 6.0,                    // Optional\n  \"default_shipping_fee\": 8.99,             // Optional\n  \"free_shipping_threshold\": 75.00,         // Optional\n  \"min_order_amount\": 15.00,                // Optional\n  \"first_order_discount_enabled\": true,           // Optional\n  \"first_order_discount_type\": \"percentage\",      // Optional (percentage or fixed_amount)\n  \"first_order_discount_value\": 15,               // Optional\n  \"first_order_max_discount\": 50,                 // Optional\n  \"meta_title\": \"ModFirst Apparel - Custom Printing & Embroidery in Maryland\", // Optional\n  \"meta_description\": \"Premium quality custom apparel printing. T-shirts, hoodies, DTF, DTG, embroidery, banners & more. Same day & rush orders available.\", // Optional\n  \"meta_keywords\": \"custom t shirts, dtf printing, embroidery near me, custom hoodies, promotional products, uv dtf stickers, Maryland apparel printing\", // Optional\n  \"og_image_url\": \"https://storage.modfirstapparel.com/og-image.jpg\", // Optional\n  \"is_active\": true   // Optional\n}"
+              "raw": "{\n  \"site_name\": \"ModFirst\",                                      // Optional\n  \"site_tagline\": \"Premium Custom Apparel & Printing Services\",         // Optional\n  \"site_description\": \"Leading custom printing company in Hyattsville, Maryland. Specializing in DTF transfers, embroidery, UV DTF stickers, t-shirts, hoodies, banners and promotional products. Fast turnaround, no minimum order.\", // Optional\n  \"logo_url\": \"https://storage.modfirstapparel.com/logos/main-logo.png\",        // Optional\n  \"favicon_url\": \"https://storage.modfirstapparel.com/logos/favicon.ico\",       // Optional\n  \"footer_logo_url\": \"https://storage.modfirstapparel.com/logos/footer-logo.png\", // Optional\n  \"primary_color\": \"#030303\",      // Optional\n  \"secondary_color\": \"#C2E105\",    // Optional\n  \"accent_color\": \"#FFFFFF\",       // Optional\n  \"font_primary\": \"Barlow\",        // Optional\n  \"font_heading\": \"Barlow\",        // Optional\n  \"contact_email\": \"info@modfirstapparel.com\",      // Optional\n  \"support_email\": \"support@modfirstapparel.com\",   // Optional\n  \"contact_phone\": \"+1 (240) 555-0123\",     // Optional\n  \"whatsapp_number\": \"+1 (240) 555-0123\",   // Optional\n  \"address\": \"Hyattsville, Maryland, USA\",  // Optional\n  \"city\": \"Hyattsville\",                    // Optional\n  \"country_code\": \"US\",                     // Optional\n  \"postal_code\": \"20782\",                   // Optional\n  \"province_code\": \"MD\",                    // Optional\n  \"business_hours\": \"Monday - Friday: 9:00 AM - 6:00 PM | Saturday: 10:00 AM - 4:00 PM\", // Optional\n  \"facebook_url\": \"https://facebook.com/modfirstapparel\",     // Optional\n  \"instagram_url\": \"https://instagram.com/modfirstapparel\",   // Optional\n  \"twitter_url\": \"https://twitter.com/modfirstapparel\",       // Optional\n  \"linkedin_url\": \"\",                                         // Optional\n  \"youtube_url\": \"\",                                          // Optional\n  \"tiktok_url\": \"https://tiktok.com/@modfirstapparel\",        // Optional\n  \"pinterest_url\": \"\",                                        // Optional\n  \"playstore_url\": \"\",   // Optional\n  \"appstore_url\": \"\",    // Optional\n  \"currency\": \"USD\",           // Optional\n  \"currency_symbol\": \"$\",      // Optional\n  \"tax_percentage\": 6.0,                    // Optional\n  \"default_shipping_fee\": 8.99,             // Optional\n  \"free_shipping_threshold\": 75.00,         // Optional\n  \"min_order_amount\": 15.00,                // Optional\n  \"first_order_discount_enabled\": true,           // Optional\n  \"first_order_discount_type\": \"percentage\",      // Optional (percentage or fixed_amount)\n  \"first_order_discount_value\": 15,               // Optional\n  \"first_order_max_discount\": 50,                 // Optional\n  \"meta_title\": \"ModFirst Apparel - Custom Printing & Embroidery in Maryland\", // Optional\n  \"meta_description\": \"Premium quality custom apparel printing. T-shirts, hoodies, DTF, DTG, embroidery, banners & more. Same day & rush orders available.\", // Optional\n  \"meta_keywords\": \"custom t shirts, dtf printing, embroidery near me, custom hoodies, promotional products, uv dtf stickers, Maryland apparel printing\", // Optional\n  \"og_image_url\": \"https://storage.modfirstapparel.com/og-image.jpg\", // Optional\n  \"is_active\": true   // Optional\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}website-settings/1",
@@ -1959,7 +1959,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"section_key\": \"why_modfirst\",\n    \"section_name\": \"Why Modfirst Section\",\n    \"title\": \"Why Modfirst?\",\n    \"subtitle\": \"Premium Custom Products at Affordable Prices\",\n    \"description\": \"We deliver premium custom products at prices everyone can afford. From T-shirts, hoodies, banners, yard signs, and business cards to embroidery and transfers, every product is crafted with precision, quality, and attention to detail to meet your unique needs without exceeding your budget.\",\n    \"background_image\": \"\",\n    \"background_color\": \"#FFFFFF\",\n    \"layout_type\": \"content_with_gallery\",\n    \"sort_order\": 2,\n    \"is_active\": true,\n    \"section_settings\": {\n        \"show_bullets\": true,\n        \"image_layout\": \"gallery\",\n        \"gallery_columns\": 2\n    },\n    \"items\": [\n        {\n            \"title\": \"Affordable Custom Quality\",\n            \"subtitle\": \"\",\n            \"description\": \"High-quality custom products at competitive prices.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 1,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Reliable & Fast Shipping\",\n            \"subtitle\": \"\",\n            \"description\": \"Quick turnaround times with dependable nationwide delivery.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 2,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Superior Print & Finish\",\n            \"subtitle\": \"\",\n            \"description\": \"Premium materials and exceptional craftsmanship for every order.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 3,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Exceptional Customer Care\",\n            \"subtitle\": \"\",\n            \"description\": \"Dedicated support from consultation through delivery.\",\n            \"image_url\": \"\",\n            \"mobile_image_url\": \"\",\n            \"button_text\": \"\",\n            \"button_url\": \"\",\n            \"badge\": \"\",\n            \"sort_order\": 4,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Modfirst Storefront\",\n            \"image_url\": \"/uploads/why_choose_us/banner-1783956427516-250745611.webp\",\n            \"mobile_image_url\": \"\",\n            \"sort_order\": 5,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Fast & Secure Delivery\",\n            \"image_url\": \"/uploads/why_choose_us/rider-1783956427364-759855365.webp\",\n            \"mobile_image_url\": \"\",\n            \"sort_order\": 6,\n            \"is_active\": true\n        },\n        {\n            \"title\": \"Custom Branded Products\",\n            \"image_url\": \"https://storage.modfirstapparel.com/sections/why-modfirst/products.jpg\",\n            \"mobile_image_url\": \"\",\n            \"sort_order\": 7,\n            \"is_active\": true\n        }\n    ]\n}"
+              "raw": "{\n  \"section_key\": \"home_hero\",                    // Required - unique identifier (lowercase + underscores only)\n  \"section_name\": \"Hero Banner Section\",         // Optional\n  \"title\": \"Premium Custom Apparel\",             // Optional\n  \"subtitle\": \"Made for You, Delivered Fast\",    // Optional\n  \"description\": \"High-quality custom printing with DTF, Embroidery & more. No minimum order.\", // Optional\n  \"background_image\": \"https://storage.modfirstapparel.com/banners/home-hero-bg.jpg\", // Optional\n  \"background_color\": \"#030303\",                 // Optional\n  \"layout_type\": \"hero\",                         // Optional\n  \"sort_order\": 1,                               // Optional (default: 0)\n  \"is_active\": true,                             // Optional (default: true)\n  \"section_settings\": {                          // Optional - JSON for extra config\n    \"autoplay\": true,\n    \"interval\": 5000\n  },\n  \"items\": [                                     // Optional - Array of items\n    {\n      \"title\": \"Shop T-Shirts\",                  // Required for each item\n      \"subtitle\": \"Starting at $19.99\",          // Optional\n      \"description\": \"Premium cotton tees with custom printing\", // Optional\n      \"image_url\": \"https://storage.modfirstapparel.com/products/tshirt-model.jpg\", // Optional\n      \"mobile_image_url\": \"\",                    // Optional\n      \"button_text\": \"Shop Now\",                 // Optional\n      \"button_url\": \"/shop/t-shirts\",            // Optional\n      \"badge\": \"New\",                            // Optional\n      \"sort_order\": 1,                           // Optional\n      \"is_active\": true                          // Optional\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}home-sections",
@@ -2032,7 +2032,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"startDate\": \"2026-01-01\",          // Global date filter (start)\n  \"endDate\": \"2026-07-13\"  ,           // Global date filter (end)\n  \"filters\": {\n    // \"id\": 5,                          // number\n    // \"section_key\": \"home_hero\"       // string\n    // \"section_name\": \"Hero\",           // string\n    // \"is_active\": true                // boolean\n  }\n}"
+              "raw": "{\n  \"page\": 1,\n  \"limit\": 10,\n  \"startDate\": \"2026-01-01\",          // Global date filter (start)\n  \"endDate\": \"2026-07-07\"  ,           // Global date filter (end)\n  \"filters\": {\n    // \"id\": 5,                          // number\n    \"section_key\": \"home_hero\"       // string\n    // \"section_name\": \"Hero\",           // string\n    // \"is_active\": true                // boolean\n  }\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}home-sections/list",
@@ -2194,13 +2194,13 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}home-sections/frontend/why_modfirst",
+              "raw": "{{BASE_URL}}home-sections/frontend/home_hero",
               "host": [
                 "{{BASE_URL}}home-sections"
               ],
               "path": [
                 "frontend",
-                "why_modfirst"
+                "home_hero"
               ]
             }
           },
@@ -2398,7 +2398,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{TOKEN}}",
+                  "value": "{{token}}",
                   "type": "string"
                 }
               ]
@@ -2412,7 +2412,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"section_key\": \"main_footer\",                // Required (lowercase + underscore only)\n  \"title\": \"Company\",                          // Optional\n  \"description\": \"Premium custom apparel printing company based in Hyattsville, Maryland.\", // Optional\n  \"image_url\": \"https://storage.modfirstapparel.com/footer/logo.png\", // Optional\n  \"sort_order\": 1,                             // Optional\n  \"is_active\": true,                           // Optional\n\n  \"links\": [                                   // Optional\n    {\n      \"name\": \"About Us\",                      // Required for link\n      \"url\": \"/about\",\n      \"type\": \"url\",                           // url / route / email / phone\n      \"target\": \"_self\",                       // _self / _blank\n      \"icon\": \"fa-info\",\n      \"badge\": \"New\",\n      \"sort_order\": 1\n    }\n  ]\n}"
+              "raw": "{\n  \"section_key\": \"main_footer\",                // Required (lowercase + underscore only)\n  \"title\": \"Company\",                          // Optional\n  \"description\": \"Premium custom apparel printing company based in Hyattsville, Maryland.\", // Optional\n  \"image_url\": \"storage.modfirstapparel.com/footer/logo.png\", // Optional\n  \"sort_order\": 1,                             // Optional\n  \"is_active\": true,                           // Optional\n\n  \"links\": [                                   // Optional\n    {\n      \"name\": \"About Us\",                      // Required for link\n      \"url\": \"/about\",\n      \"type\": \"url\",                           // url / route / email / phone\n      \"target\": \"_self\",                       // _self / _blank\n      \"icon\": \"fa-info\",\n      \"badge\": \"New\",\n      \"sort_order\": 1\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}footer-sections",
@@ -3179,7 +3179,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Create Your Own Gang Sheets Online\",                              // Required\n  \"slug\": \"shop/test/\",                              // Required\n  \"menu_type\": \"frontend\",                     // Required (frontend / dashboard)\n  \"parent_id\": 2,                           // Optional (for sub-menu)\n  \"sort_order\": 1,                             // Optional\n  \"icon\": \"fa-shopping-bag\",                   // Optional\n  \"link_type\": \"category\",                     // Required (category / product / page / collection / external_url / custom)\n  \"link_value\": \"\",                            // Optional\n  \"target_category_id\": null,                     // Optional\n  \"target_product_id\": null,                   // Optional\n  \"target_page_id\": null,                      // Optional\n  \"external_url\": \"\",                          // Optional\n  \"open_in_new_tab\": false,                    // Optional\n  \"visibility\": true,                          // Optional\n  \"is_active\": true                            // Optional\n}"
+              "raw": "{\n  \"name\": \"Shop\",                              // Required\n  \"slug\": \"shop/test/test\",                              // Required\n  \"menu_type\": \"frontend\",                     // Required (frontend / dashboard)\n  \"parent_id\": 3,                           // Optional (for sub-menu)\n  \"sort_order\": 1,                             // Optional\n  \"icon\": \"fa-shopping-bag\",                   // Optional\n  \"link_type\": \"category\",                     // Required (category / product / page / collection / external_url / custom)\n  \"link_value\": \"\",                            // Optional\n  \"target_category_id\": null,                     // Optional\n  \"target_product_id\": null,                   // Optional\n  \"target_page_id\": null,                      // Optional\n  \"external_url\": \"\",                          // Optional\n  \"open_in_new_tab\": false,                    // Optional\n  \"visibility\": true,                          // Optional\n  \"is_active\": true                            // Optional\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}menus",
@@ -3440,7 +3440,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"menu_id\": 1,                    // Required\n  \"role\": \"super_admin\",                 // Required (super_admin / admin / manager / designer / sales / support / content_writer / production / accountant / customer)\n  \"can_view\": true,                // Optional (default: true)\n  \"can_create\": true,              // Optional (default: false)\n  \"can_edit\": true,                // Optional (default: false)\n  \"can_delete\": true              // Optional (default: false)\n}"
+              "raw": "{\n  \"menu_id\": 5,                    // Required\n  \"role\": \"admin\",                 // Required (super_admin / admin / manager / designer / sales / support / content_writer / production / accountant / customer)\n  \"can_view\": true,                // Optional (default: true)\n  \"can_create\": true,              // Optional (default: false)\n  \"can_edit\": true,                // Optional (default: false)\n  \"can_delete\": false              // Optional (default: false)\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}menu-rights",
@@ -4449,7 +4449,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"T-Shirts\",                    // Required\n  \"slug\": \"t-shirts\",                    // Required\n  \"description\": \"Premium quality custom printed t-shirts and apparel\", // Optional\n  \"parent_id\": null,                     // Optional (null for parent category)\n  \"is_active\": true                      // Optional (default: true)\n}"
+              "raw": "{\n  \"name\": \"T-Shirts\",                    // Required\n  \"slug\": \"t-shirts\",                    // Required\n  \"description\": \"Premium quality custom printed t-shirts and apparel\", // Optional\n  \"parent_id\": null,                     // Optional (null for parent category)\n  \"image_url\":\"testing.png\",                     // Optional\n  \"is_active\": true                      // Optional (default: true)\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}product-categories",
@@ -4944,7 +4944,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"Premium Organic Cotton T-Shirt\", // Required\n    \"slug\": \"premium-organic-cotton-t-shirt\", // Required\n    \"sku\": \"TS-ORG-BLK-M\", // Optional (auto if empty)\n    \"base_price\": 34.99, // Required\n    \"sale_price\": 27.99, // Optional\n    \"cost_price\": 15.50, // Optional\n    \"category_id\": 5, // Optional\n    \"vendor_id\": 2, // Optional\n    \"tags\": [\n        \"organic\",\n        \"cotton\",\n        \"premium\"\n    ], // Optional\n    \"description\": \"<p>Full detailed description with HTML...</p>\", // Optional\n    \"short_desc\": \"Soft, breathable organic cotton t-shirt\", // Optional\n    \"print_methods\": [\n        \"dtf\",\n        \"dtg\",\n        \"embroidery\"\n    ], // Optional\n    \"is_customizable\": true, // Optional (default: true)\n    \"is_featured\": false, // Optional (default: false)\n    \"status\": \"published\", // Optional (draft / published / archived)\n    \"is_pickup_allowed\": true, // Optional (default: true)\n    \"is_delivery_allowed\": true, // Optional (default: true)\n    \"weight\": 0.45, // Optional (pounds)\n    \"length\": 14, // Optional (inches)\n    \"width\": 10, // Optional\n    \"height\": 1.5, // Optional\n    \"meta_title\": \"Premium Organic Cotton T-Shirt\", // Optional\n    \"meta_desc\": \"Eco-friendly, ultra soft t-shirt with custom printing\", // Optional\n    \"meta_keywords\": \"organic t-shirt, cotton tee, custom apparel\", // Optional\n    \"canonical_url\": \"https://modfirstapparel.com/products/premium-organic-cotton-t-shirt\", // Optional\n    \"is_active\": true, // Optional (default: true)\n    // Nested Data (Optional)\n    \"variants\": [ // Optional\n        {\n            \"color_id\": 1,\n            \"size_id\": 4,\n            \"sku\": \"TS-ORG-BLK-M\",\n            \"price\": 34.99,\n            \"quantity\": 100\n        }\n    ],\n    \"images\": [ // Optional\n        {\n            \"image_url\": \"https://storage/front.jpg\",\n            \"is_primary\": true,\n            \"sort_order\": 1\n        }\n    ],\n    \"descriptions\": [ // Optional\n        {\n            \"heading\": \"Material & Care\",\n            \"description\": \"100% Organic Cotton. Machine wash cold.\",\n            \"sort_order\": 1\n        }\n    ],\n    \"faqs\": [ // Optional\n        {\n            \"question\": \"Is this shirt true to size?\",\n            \"answer\": \"Yes, please refer to our size chart.\",\n            \"sort_order\": 1\n        }\n    ]\n}"
+              "raw": "{\n    \"name\": \"Premium Organic Cotton T-Shirt\", // Required\n    \"slug\": \"premium-organic-cotton-t-shirt\", // Required\n    \"sku\": \"TS-ORG-BLK-M\", // Optional (auto if empty)\n    \"base_price\": 34.99, // Required\n    \"sale_price\": 27.99, // Optional\n    \"cost_price\": 15.50, // Optional\n    \"category_id\": 5, // Optional\n    \"vendor_id\": 2, // Optional\n    \"tags\": [\n        \"organic\",\n        \"cotton\",\n        \"premium\"\n    ], // Optional\n    \"description\": \"<p>Full detailed description with HTML...</p>\", // Optional\n    \"short_desc\": \"Soft, breathable organic cotton t-shirt\", // Optional\n    \"print_methods\": [\n        \"dtf\",\n        \"dtg\",\n        \"embroidery\"\n    ], // Optional\n    \"is_customizable\": true, // Optional (default: true)\n    \"is_featured\": false, // Optional (default: false)\n    \"status\": \"published\", // Optional (draft / published / archived)\n    \"is_pickup_allowed\": true, // Optional (default: true)\n    \"is_delivery_allowed\": true, // Optional (default: true)\n    \"weight\": 0.45, // Optional (pounds)\n    \"length\": 14, // Optional (inches)\n    \"width\": 10, // Optional\n    \"height\": 1.5, // Optional\n    \"meta_title\": \"Premium Organic Cotton T-Shirt\", // Optional\n    \"meta_desc\": \"Eco-friendly, ultra soft t-shirt with custom printing\", // Optional\n    \"meta_keywords\": \"organic t-shirt, cotton tee, custom apparel\", // Optional\n    \"canonical_url\": \"modfirstapparel.com/products/premium-organic-cotton-t-shirt\", // Optional\n    \"is_active\": true, // Optional (default: true)\n    // Nested Data (Optional)\n    \"variants\": [ // Optional\n        {\n            \"color_id\": 1,\n            \"size_id\": 4,\n            \"sku\": \"TS-ORG-BLK-M\",\n            \"price\": 34.99,\n            \"quantity\": 100\n        }\n    ],\n    \"images\": [ // Optional\n        {\n            \"image_url\": \"https://storage/front.jpg\",\n            \"is_primary\": true,\n            \"sort_order\": 1\n        }\n    ],\n    \"descriptions\": [ // Optional\n        {\n            \"heading\": \"Material & Care\",\n            \"description\": \"100% Organic Cotton. Machine wash cold.\",\n            \"sort_order\": 1\n        }\n    ],\n    \"faqs\": [ // Optional\n        {\n            \"question\": \"Is this shirt true to size?\",\n            \"answer\": \"Yes, please refer to our size chart.\",\n            \"sort_order\": 1\n        }\n    ]\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}products",
@@ -7397,7 +7397,7 @@
               "raw": ""
             },
             "url": {
-              "raw": "{{BASE_URL}}inventory/get/14?variant_id=1",
+              "raw": "{{BASE_URL}}inventory/get/14?variant_id=9",
               "host": [
                 "{{BASE_URL}}inventory"
               ],
@@ -7408,7 +7408,7 @@
               "query": [
                 {
                   "key": "variant_id",
-                  "value": "1"
+                  "value": "9"
                 }
               ]
             }
@@ -7551,7 +7551,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"product_id\": 42, // Required\n    \"rating\": 5, // Required (1 to 5)\n    \"title\": \"Excellent quality t-shirt!\", // Optional\n    \"comment\": \"Very soft fabric and perfect fit. Highly recommended.\", // Optional\n    \"images\": [ // Optional\n        \"https://storage./review1.jpg\",\n        \"https://storage/review2.jpg\"\n    \"video_url\": \"https://storage/review-video.mp4\", // Optional\n    \"is_verified\": false, // Optional (default: false)\n    \"status\": \"pending\", // Optional (pending / approved / rejected)\n    \"helpful_count\": 0, //optional default 0\n    \"is_active\": true // Optional (default: true)\n}"
+              "raw": "{\n    \"user_id\": 1, // Required\n    \"product_id\": 42, // Required\n    \"rating\": 5, // Required (1 to 5)\n    \"title\": \"Excellent quality t-shirt!\", // Optional\n    \"comment\": \"Very soft fabric and perfect fit. Highly recommended.\", // Optional\n    \"images\": [ // Optional\n        \"https://storage./review1.jpg\",\n        \"https://storage/review2.jpg\"\n    ],\n    \"video_url\": \"https://storage/review-video.mp4\", // Optional\n    \"is_verified\": false, // Optional (default: false)\n    \"status\": \"pending\", // Optional (pending / approved / rejected)\n    \"helpful_count\": 0, //optional default 0\n    \"is_active\": true // Optional (default: true)\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}reviews",
@@ -7807,25 +7807,28 @@
           ],
           "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{TOKEN}}",
-                  "type": "string"
-                }
-              ]
+              "type": "noauth"
             },
             "method": "PUT",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{X_API_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "x-api-password",
+                "value": "{{X_API_PASSWORD}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 4,                         // Optional\n  \"title\": \"Updated title\",            // Optional\n  \"comment\": \"Updated comment...\",     // Optional\n  \"status\": \"approved\",                // Optional (pending / approved / rejected)\n  \"is_verified\": true,                 // Optional\n  \"is_active\": true                    // Optional\n}"
+              "raw": "{\n    \"user_id\": 1, //required\n    \"rating\": 4, // Optional\n    \"title\": \"Updated title\", // Optional\n    \"comment\": \"Updated comment...\", // Optional\n    \"status\": \"approved\", // Optional (pending / approved / rejected)\n    \"is_verified\": true, // Optional\n    \"is_active\": true // Optional\n}"
             },
             "url": {
               "raw": "{{BASE_URL}}reviews/:id",
@@ -11699,23 +11702,20 @@
                 {
                   "key": "files",
                   "type": "file",
-                  "src": "/C:/Users/rajaa/Downloads/modlogo/coffee-mugs.webp"
+                  "src": "/C:/Users/CG/Downloads/banner4.webp"
                 },
                 {
                   "key": "files",
                   "type": "file",
-                  "src": "/C:/Users/rajaa/Downloads/modlogo/rider.webp"
-                },
-                {
-                  "key": "files",
-                  "type": "file",
-                  "uuid": "8f8b553b-3132-4568-b39d-7882a8551f2c",
-                  "src": "/C:/Users/rajaa/Downloads/modlogo/banner.webp"
+                  "src": [
+                    "/C:/Users/CG/Downloads/banner1.webp",
+                    "/C:/Users/CG/Downloads/banner2.webp"
+                  ]
                 }
               ]
             },
             "url": {
-              "raw": "{{BASE_URL}}upload/images?folder=why_choose_us",
+              "raw": "{{BASE_URL}}upload/images?folder=testing",
               "host": [
                 "{{BASE_URL}}upload"
               ],
@@ -11725,7 +11725,8 @@
               "query": [
                 {
                   "key": "folder",
-                  "value": "why_choose_us"
+                  "value": "testing",
+                  "type": "text"
                 }
               ]
             },
@@ -15234,6 +15235,14 @@
     },
     {
       "key": "X_API_PASSWORD",
+      "value": ""
+    },
+    {
+      "key": "supabase_service_role_api_key_0vtj",
+      "value": ""
+    },
+    {
+      "key": "supabase_service_role_api_key_18kp",
       "value": ""
     }
   ]
