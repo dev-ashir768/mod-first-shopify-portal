@@ -394,7 +394,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
     register,
     handleSubmit,
     control,
-    watch,
     setValue,
     getFieldState,
     formState: { errors, isSubmitting },
@@ -466,6 +465,9 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
   const costVal = useWatch({ control, name: "cost_per_item" });
   const trackQty = useWatch({ control, name: "track_quantity" });
   const requiresShipping = useWatch({ control, name: "requires_shipping" });
+  const metaTitle = useWatch({ control, name: "meta_title" });
+  const metaDesc = useWatch({ control, name: "meta_description" });
+  const slugVal = useWatch({ control, name: "slug" });
 
   React.useEffect(() => {
     if (!isEdit && !getFieldState("slug").isDirty) {
@@ -473,22 +475,42 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
     }
   }, [title, isEdit, getFieldState, setValue]);
 
-  // Upload images
+  // Upload images — show blob preview immediately, swap with real URL when done
   const handleImagesAdd = async (files: FileList) => {
     setImgUploading(true);
     const arr = Array.from(files);
+
+    // 1. Add blob previews instantly so the user sees them right away
+    const blobs = arr.map((f) => URL.createObjectURL(f));
+    setImages((prev) => [
+      ...prev,
+      ...blobs.map((url, i) => ({
+        url,
+        alt: null,
+        sort_order: prev.length + i,
+        is_featured: prev.length === 0 && i === 0,
+      })),
+    ]);
+
+    // 2. Upload in background and swap blob URLs with real hosted URLs
     try {
-      const urls = await Promise.all(arr.map((f) => uploadImage(f, "products")));
-      setImages((prev) => [
-        ...prev,
-        ...urls.map((url, i) => ({
-          url,
-          alt: null,
-          sort_order: prev.length + i,
-          is_featured: prev.length === 0 && i === 0,
-        })),
-      ]);
+      const realUrls = await Promise.all(arr.map((f) => uploadImage(f, "products")));
+      setImages((prev) => {
+        const next = [...prev];
+        // The blob URLs we just added are at the tail; replace them
+        const offset = next.length - blobs.length;
+        blobs.forEach((blob, i) => {
+          const idx = next.findIndex((img) => img.url === blob);
+          if (idx !== -1) next[idx] = { ...next[idx], url: realUrls[i] };
+          else if (offset + i < next.length) next[offset + i] = { ...next[offset + i], url: realUrls[i] };
+          URL.revokeObjectURL(blob);
+        });
+        return next;
+      });
     } catch (err) {
+      // Remove the blob previews that failed, revoke object URLs
+      blobs.forEach((b) => URL.revokeObjectURL(b));
+      setImages((prev) => prev.filter((img) => !blobs.includes(img.url)));
       toast.error(apiErrorMessage(err, "Image upload failed."));
     } finally {
       setImgUploading(false);
@@ -523,12 +545,14 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       is_active: true,
       is_featured: false,
       is_customizable: true,
-      images: images.map((img, i) => ({
-        url: img.url,
-        alt: img.alt,
-        sort_order: i,
-        is_featured: i === 0,
-      })),
+      images: images
+        .filter((img) => !img.url.startsWith("blob:"))
+        .map((img, i) => ({
+          url: img.url,
+          alt: img.alt,
+          sort_order: i,
+          is_featured: i === 0,
+        })),
       // variants sent separately via /product-variants/bulk after product save
       faqs: values.faqs.map((f, i) => ({
         ...(f.id ? { id: f.id } : {}),
@@ -1142,15 +1166,15 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
               {/* Preview */}
               <div className="rounded-lg bg-muted/40 p-3 text-xs">
                 <p className="text-[#1a0dab] dark:text-[#8ab4f8] font-medium truncate">
-                  {watch("meta_title") || watch("title") || "Product title"}
+                  {metaTitle || title || "Product title"}
                 </p>
                 <p className="text-[#006621] dark:text-[#4db97e] truncate">
                   {product?.canonical_url
                     ? (() => { try { return new URL(product.canonical_url).host; } catch { return "yourstore.com"; } })()
-                    : "yourstore.com"}/products/{watch("slug") || "product-handle"}
+                    : "yourstore.com"}/products/{slugVal || "product-handle"}
                 </p>
                 <p className="text-muted-foreground line-clamp-2 mt-0.5">
-                  {watch("meta_description") || "Product description will appear here in search results."}
+                  {metaDesc || "Product description will appear here in search results."}
                 </p>
               </div>
 
@@ -1182,7 +1206,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                 <Label htmlFor="p-meta-title">Meta title</Label>
                 <Input id="p-meta-title" placeholder="Defaults to title" {...register("meta_title")} />
                 <p className="text-xs text-muted-foreground text-right">
-                  {watch("meta_title")?.length ?? 0}/70
+                  {metaTitle?.length ?? 0}/70
                 </p>
               </div>
               <div className="space-y-1.5">
@@ -1194,7 +1218,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                   {...register("meta_description")}
                 />
                 <p className="text-xs text-muted-foreground text-right">
-                  {watch("meta_description")?.length ?? 0}/160
+                  {metaDesc?.length ?? 0}/160
                 </p>
               </div>
             </div>

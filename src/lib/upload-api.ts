@@ -19,12 +19,25 @@ function pickUrl(data: Json): string {
     p.path ??
     p.file_url ??
     p.fileUrl ??
+    p.image_url ??
+    p.imageUrl ??
+    p.filename ??
     p.location ??
+    p.link ??
+    p.src ??
     p.file?.url ??
     p.file?.path ??
-    (Array.isArray(p.files) ? p.files[0]?.url ?? p.files[0]?.path : undefined) ??
-    (Array.isArray(p) ? p[0]?.url ?? p[0]?.path : undefined);
-  if (!candidate) throw new Error("Upload succeeded but no file URL in response");
+    p.file?.image_url ??
+    p.data?.url ??
+    p.data?.path ??
+    p.data?.file_url ??
+    (Array.isArray(p.files) ? p.files[0]?.url ?? p.files[0]?.path ?? p.files[0]?.file_url : undefined) ??
+    (Array.isArray(p) ? p[0]?.url ?? p[0]?.path ?? p[0]?.file_url : undefined) ??
+    (typeof (p as unknown) === "string" && (p as unknown as string).startsWith("http") ? (p as unknown as string) : undefined);
+  if (!candidate) {
+    console.error("[upload] pickUrl: no URL found in response", data);
+    throw new Error("Upload succeeded but no file URL in response");
+  }
   return candidate as string;
 }
 

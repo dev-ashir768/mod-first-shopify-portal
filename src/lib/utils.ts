@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 /** Prepend the API base origin to relative image paths. */
 export function imgUrl(src?: string | null): string {
   if (!src) return "";
-  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:")) return src;
+  if (src.startsWith("http://") || src.startsWith("https://") || src.startsWith("data:") || src.startsWith("blob:")) return src;
   const base = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/api\/.*$/, "").replace(/\/$/, "");
   return `${base}${src.startsWith("/") ? "" : "/"}${src}`;
 }

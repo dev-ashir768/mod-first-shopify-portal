@@ -212,7 +212,6 @@ function ColorDialog({
     handleSubmit,
     control,
     reset,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<ColorValues>({
