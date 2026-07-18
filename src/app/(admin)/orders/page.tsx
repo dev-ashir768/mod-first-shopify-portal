@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "@/components/data-table";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { StatusBadge } from "@/components/status-badge";
 import { apiErrorMessage } from "@/lib/auth-api";
 import {
@@ -196,7 +197,6 @@ export default function OrdersPage() {
           <Button variant="outline">
             <Download className="size-4" /> Export
           </Button>
-          <Button>Create order</Button>
         </div>
       </div>
 
@@ -218,18 +218,9 @@ export default function OrdersPage() {
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Date range */}
-        <input
-          type="date"
-          value={dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : ""}
-          onChange={(e) => setDateRange((r) => ({ ...r, from: e.target.value ? new Date(e.target.value) : undefined }))}
-          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        <span className="text-muted-foreground text-sm">–</span>
-        <input
-          type="date"
-          value={dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : ""}
-          onChange={(e) => setDateRange((r) => ({ ...r, to: e.target.value ? new Date(e.target.value) : undefined }))}
-          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        <DateRangePicker
+          value={dateRange}
+          onChange={(r) => r && setDateRange(r)}
         />
 
         {/* Payment status */}
@@ -281,25 +272,17 @@ export default function OrdersPage() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-        </div>
-      ) : (
-        <DataTable columns={columns} data={rows} searchKey="" searchPlaceholder="" />
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">{total} orders</p>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-            <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-            <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
-          </div>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={rows}
+        loading={loading}
+        serverPagination={{
+          pageIndex: page - 1,
+          pageCount: totalPages,
+          total,
+          onPageChange: (idx) => setPage(idx + 1),
+        }}
+      />
     </div>
   );
 }
