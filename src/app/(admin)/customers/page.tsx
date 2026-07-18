@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { DataTable } from "@/components/data-table";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { StatusBadge } from "@/components/status-badge";
 import { apiErrorMessage } from "@/lib/auth-api";
 import { listUsers, USER_ROLES, type UserRow } from "@/lib/admin-api";
@@ -123,10 +124,6 @@ const columns: ColumnDef<UserRow>[] = [
   },
 ];
 
-function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-md bg-muted ${className ?? ""}`} />;
-}
-
 export default function CustomersPage() {
   const [page, setPage] = React.useState(1);
   const [rows, setRows] = React.useState<UserRow[]>([]);
@@ -134,11 +131,7 @@ export default function CustomersPage() {
   const [totalPages, setTotalPages] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
 
-  // Filters
-  const [dateRange, setDateRange] = React.useState<DateRange>({
-    from: undefined,
-    to: undefined,
-  });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
   const [role, setRole] = React.useState("all");
   const [isActive, setIsActive] = React.useState("all");
   const [searchInput, setSearchInput] = React.useState("");
@@ -168,31 +161,15 @@ export default function CustomersPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold">Customers</h1>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Download className="size-4" /> Export
-          </Button>
-        </div>
+        <Button variant="outline">
+          <Download className="size-4" /> Export
+        </Button>
       </div>
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Date range */}
-        <input
-          type="date"
-          value={dateRange.from ? format(dateRange.from, "yyyy-MM-dd") : ""}
-          onChange={(e) => setDateRange((r) => ({ ...r, from: e.target.value ? new Date(e.target.value) : undefined }))}
-          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        <span className="text-muted-foreground text-sm">–</span>
-        <input
-          type="date"
-          value={dateRange.to ? format(dateRange.to, "yyyy-MM-dd") : ""}
-          onChange={(e) => setDateRange((r) => ({ ...r, to: e.target.value ? new Date(e.target.value) : undefined }))}
-          className="h-9 rounded-lg border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
 
-        {/* Role filter */}
         <Select value={role} onValueChange={(v) => setRole(v ?? "all")}>
           <SelectTrigger className="h-9 w-44 bg-card">
             <SelectValue placeholder="All roles" />
@@ -200,12 +177,13 @@ export default function CustomersPage() {
           <SelectContent>
             <SelectItem value="all">All roles</SelectItem>
             {USER_ROLES.map((r) => (
-              <SelectItem key={r} value={r}>{r.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</SelectItem>
+              <SelectItem key={r} value={r}>
+                {r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* Active filter */}
         <Select value={isActive} onValueChange={(v) => setIsActive(v ?? "all")}>
           <SelectTrigger className="h-9 w-36 bg-card">
             <SelectValue placeholder="Status" />
@@ -217,7 +195,6 @@ export default function CustomersPage() {
           </SelectContent>
         </Select>
 
-        {/* Name search */}
         <div className="flex items-center gap-1">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -230,7 +207,10 @@ export default function CustomersPage() {
               className="h-9 w-48 rounded-lg border border-input bg-card pl-8 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
             {searchInput && (
-              <button onClick={() => { setSearchInput(""); setSearch(""); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <button
+                onClick={() => { setSearchInput(""); setSearch(""); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
                 <X className="size-3.5" />
               </button>
             )}
@@ -240,25 +220,17 @@ export default function CustomersPage() {
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-        </div>
-      ) : (
-        <DataTable columns={columns} data={rows} searchKey="" searchPlaceholder="" />
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">{total} customers</p>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-            <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-            <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
-          </div>
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={rows}
+        loading={loading}
+        serverPagination={{
+          pageIndex: page - 1,
+          pageCount: totalPages,
+          total,
+          onPageChange: (idx) => setPage(idx + 1),
+        }}
+      />
     </div>
   );
 }
