@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Plus, Search } from "lucide-react";
+import { LayoutGrid, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -13,40 +13,38 @@ import { DataTable } from "@/components/data-table";
 import { StatusBadge } from "@/components/status-badge";
 import { apiErrorMessage } from "@/lib/auth-api";
 import { listProductCategories, type ProductCategoryRow } from "@/lib/admin-api";
+import { imgUrl } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
 const imgSrc = (row: ProductCategoryRow) =>
-  row.image_url ?? row.image ?? row.banner ?? row.icon ?? null;
+  imgUrl(row.image_url ?? row.image ?? row.banner ?? row.icon ?? null) || null;
 
 const columns: ColumnDef<ProductCategoryRow>[] = [
-  {
-    id: "image",
-    header: "",
-    cell: ({ row }) => {
-      const src = imgSrc(row.original);
-      return src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt={row.original.name}
-          className="size-10 rounded-lg border border-border object-cover"
-        />
-      ) : (
-        <div className="size-10 rounded-lg border border-border bg-muted" />
-      );
-    },
-    enableSorting: false,
-  },
   {
     accessorKey: "name",
     header: "Category",
     cell: ({ row }) => {
       const r = row.original;
+      const src = imgSrc(r);
       return (
-        <div className="min-w-0">
-          <p className="font-medium">{r.name}</p>
-          <p className="font-mono text-xs text-muted-foreground">/{r.slug}</p>
+        <div className="flex items-center gap-3 min-w-0">
+          {src ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={src}
+              alt={r.name}
+              className="size-10 shrink-0 rounded-lg border border-border object-cover"
+            />
+          ) : (
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
+              <LayoutGrid className="size-4 text-muted-foreground" />
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="truncate font-medium">{r.name}</p>
+            <p className="truncate font-mono text-xs text-muted-foreground">/{r.slug}</p>
+          </div>
         </div>
       );
     },

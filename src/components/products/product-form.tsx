@@ -169,25 +169,24 @@ function ProductImageGrid({
         </div>
       ))}
 
-      {/* Add tile */}
-      <button
-        type="button"
-        disabled={uploading}
-        onClick={() => ref.current?.click()}
-        className={cn(
-          "flex aspect-square cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input bg-muted/40 text-muted-foreground transition-colors duration-150 hover:border-ring hover:text-foreground",
-          "disabled:pointer-events-none disabled:opacity-50"
-        )}
-      >
-        {uploading ? (
-          <Loader2 className="size-5 animate-spin" />
-        ) : (
-          <>
-            <ImagePlus className="size-5" />
-            <span className="text-xs">Add</span>
-          </>
-        )}
-      </button>
+      {/* Loading slot — shown while uploading */}
+      {uploading && (
+        <div className="flex aspect-square items-center justify-center rounded-lg border border-border bg-muted/60">
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {/* Add tile — hidden while uploading */}
+      {!uploading && (
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-input bg-muted/40 text-muted-foreground transition-colors duration-150 hover:border-ring hover:text-foreground"
+        >
+          <ImagePlus className="size-5" />
+          <span className="text-xs">Add</span>
+        </button>
+      )}
 
       <input
         ref={ref}
@@ -526,16 +525,13 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       short_desc: undefined as string | undefined,
       status: values.status,
       // Pricing — API uses base_price / sale_price / cost_price
-      base_price: parseNum(values.price),
-      sale_price: parseNum(values.compare_at_price),
-      cost_price: parseNum(values.cost_per_item),
+      base_price: parseNum(values.price) ?? 0,
+      sale_price: parseNum(values.compare_at_price) ?? undefined,
+      cost_price: parseNum(values.cost_per_item) ?? undefined,
       sku: values.sku || undefined,
       barcode: values.barcode || undefined,
-      track_quantity: values.track_quantity,
       quantity: parseInt2(values.quantity),
-      requires_shipping: values.requires_shipping,
-      weight: parseNum(values.weight),
-      weight_unit: values.weight_unit || undefined,
+      weight: parseNum(values.weight) ?? undefined,
       vendor_id: undefined as number | undefined,
       vendor: values.vendor || undefined,
       category_id: values.category ? Number(values.category) || undefined : undefined,
@@ -546,10 +542,10 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       is_featured: false,
       is_customizable: true,
       images: images
-        .filter((img) => !img.url.startsWith("blob:"))
+        .filter((img) => img.url && !img.url.startsWith("blob:"))
         .map((img, i) => ({
-          url: img.url,
-          alt: img.alt,
+          image_url: img.url,
+          alt: img.alt || undefined,
           sort_order: i,
           is_featured: i === 0,
         })),
