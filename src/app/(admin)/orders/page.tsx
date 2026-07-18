@@ -143,9 +143,6 @@ const TABS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-md bg-muted ${className ?? ""}`} />;
-}
 
 export default function OrdersPage() {
   const [tab, setTab] = React.useState("all");
