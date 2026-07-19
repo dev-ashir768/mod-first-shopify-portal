@@ -388,7 +388,7 @@ export async function listMenuRights(
 
 // ─── Products ────────────────────────────────────────────────────────────────
 
-export const PRODUCT_STATUSES = ["active", "draft", "archived"] as const;
+export const PRODUCT_STATUSES = ["published", "draft", "archived"] as const;
 export const WEIGHT_UNITS = ["kg", "g", "lb", "oz"] as const;
 
 export interface ProductImageRow {
@@ -425,7 +425,7 @@ export interface ProductRow {
   id: number | string;
   title: string;
   slug?: string;
-  status?: "active" | "draft" | "archived";
+  status?: "published" | "draft" | "archived";
   vendor?: string | null;
   category?: string | null;
   price?: number | null;

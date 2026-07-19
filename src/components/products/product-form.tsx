@@ -8,6 +8,8 @@ import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowLeft,
+  Check,
+  ChevronsUpDown,
   ExternalLink,
   GripVertical,
   ImagePlus,
@@ -32,6 +34,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { apiErrorMessage } from "@/lib/auth-api";
 import { uploadImage } from "@/lib/upload-api";
 import {
@@ -96,7 +107,7 @@ const productFormSchema = z.object({
   category: z.string().optional(),
   tags: z.string().optional(),
   // SEO
-  slug: z.string().optional(),
+  slug: z.string().min(1, "URL handle is required"),
   meta_title: z.string().optional(),
   meta_description: z.string().optional(),
   // Arrays
@@ -222,6 +233,85 @@ function ProfitDisplay({ price, cost }: { price?: string; cost?: string }) {
   );
 }
 
+// ─── Combobox primitive ──────────────────────────────────────────────────────
+
+function Combobox({
+  options,
+  value,
+  onChange,
+  placeholder = "Select…",
+  searchPlaceholder = "Search…",
+  emptyText = "No results found.",
+  loading = false,
+  disabled = false,
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  loading?: boolean;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        role="combobox"
+        aria-expanded={open}
+        disabled={disabled || loading}
+        className={cn(
+          "flex h-9 w-full items-center justify-between rounded-md border border-input bg-card px-3 py-2 text-sm shadow-sm transition-colors",
+          "hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-ring",
+          "disabled:cursor-not-allowed disabled:opacity-50"
+        )}
+      >
+        {loading ? (
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" /> Loading…
+          </span>
+        ) : (
+          <span className={selected ? "" : "text-muted-foreground"}>
+            {selected?.label ?? placeholder}
+          </span>
+        )}
+        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} />
+          <CommandList>
+            <CommandEmpty>{emptyText}</CommandEmpty>
+            <CommandGroup>
+              {options.map((opt) => (
+                <CommandItem
+                  key={opt.value}
+                  value={opt.label}
+                  onSelect={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 size-4",
+                      value === opt.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {opt.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ─── Category Select ─────────────────────────────────────────────────────────
 
 function CategorySelect({
@@ -241,46 +331,29 @@ function CategorySelect({
       .finally(() => setLoading(false));
   }, []);
 
-  const items: Record<string, string> = Object.fromEntries([
-    ["", "No category"],
-    ...cats.map((c) => [String(c.id), c.name]),
-  ]);
+  const resolvedValue = value
+    ? cats.find((c) => String(c.id) === value || c.name === value)
+      ? String(cats.find((c) => String(c.id) === value || c.name === value)!.id)
+      : value
+    : "__none__";
 
-  // value stored as category id string; fall back to name match for existing products
-  const resolvedValue =
-    value
-      ? cats.find((c) => String(c.id) === value || c.name === value)
-        ? cats.find((c) => String(c.id) === value || c.name === value)
-            ? String(cats.find((c) => String(c.id) === value || c.name === value)!.id)
-            : value
-        : value
-      : "";
+  const options = [
+    { value: "__none__", label: "No category" },
+    ...cats.map((c) => ({
+      value: String(c.id),
+      label: c.parent?.name ? `${c.parent.name} › ${c.name}` : c.name,
+    })),
+  ];
 
   return (
-    <Select
-      items={items}
+    <Combobox
+      options={options}
       value={resolvedValue}
-      onValueChange={onChange}
-      disabled={loading}
-    >
-      <SelectTrigger className="w-full">
-        {loading ? (
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="size-3 animate-spin" /> Loading…
-          </span>
-        ) : (
-          <SelectValue placeholder="Select category" />
-        )}
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="">No category</SelectItem>
-        {cats.map((c) => (
-          <SelectItem key={c.id} value={String(c.id)}>
-            {c.parent?.name ? `${c.parent.name} › ${c.name}` : c.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      onChange={(v) => onChange(v === "__none__" ? null : v)}
+      placeholder="Select category"
+      searchPlaceholder="Search categories…"
+      loading={loading}
+    />
   );
 }
 
@@ -303,42 +376,26 @@ function VendorSelect({
       .finally(() => setLoading(false));
   }, []);
 
-  const items: Record<string, string> = Object.fromEntries([
-    ["", "No vendor"],
-    ...vendors.map((v) => [String(v.id), v.name]),
-  ]);
-
   const resolvedValue = value
     ? vendors.find((v) => String(v.id) === value || v.name === value)
       ? String(vendors.find((v) => String(v.id) === value || v.name === value)!.id)
       : value
-    : "";
+    : "__none__";
+
+  const options = [
+    { value: "__none__", label: "No vendor" },
+    ...vendors.map((v) => ({ value: String(v.id), label: v.name })),
+  ];
 
   return (
-    <Select
-      items={items}
+    <Combobox
+      options={options}
       value={resolvedValue}
-      onValueChange={onChange}
-      disabled={loading}
-    >
-      <SelectTrigger className="w-full">
-        {loading ? (
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <Loader2 className="size-3 animate-spin" /> Loading…
-          </span>
-        ) : (
-          <SelectValue placeholder="Select vendor" />
-        )}
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="">No vendor</SelectItem>
-        {vendors.map((v) => (
-          <SelectItem key={v.id} value={String(v.id)}>
-            {v.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      onChange={(v) => onChange(v === "__none__" ? null : v)}
+      placeholder="Select vendor"
+      searchPlaceholder="Search vendors…"
+      loading={loading}
+    />
   );
 }
 
@@ -420,7 +477,9 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
         : typeof product?.category === "object" && product?.category !== null
           ? String((product.category as { id?: number | string }).id ?? "")
           : product?.category ?? "",
-      tags: product?.tags ?? "",
+      tags: Array.isArray(product?.tags)
+        ? (product.tags as string[]).join(", ")
+        : product?.tags ?? "",
       slug: product?.slug
         ?? (product?.canonical_url ? (product.canonical_url.split("/products/")[1] ?? "") : ""),
       meta_title: product?.meta_title ?? "",
@@ -532,12 +591,14 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       barcode: values.barcode || undefined,
       quantity: parseInt2(values.quantity),
       weight: parseNum(values.weight) ?? undefined,
-      vendor_id: undefined as number | undefined,
-      vendor: values.vendor || undefined,
+      weight_unit: values.weight ? values.weight_unit : undefined,
+      vendor_id: values.vendor ? Number(values.vendor) || undefined : undefined,
       category_id: values.category ? Number(values.category) || undefined : undefined,
-      tags: values.tags || undefined,
+      tags: values.tags
+        ? values.tags.split(",").map((t) => t.trim()).filter(Boolean)
+        : undefined,
       meta_title: values.meta_title || undefined,
-      meta_description: values.meta_description || undefined,
+      meta_desc: values.meta_description || undefined,
       is_active: true,
       is_featured: false,
       is_customizable: true,
@@ -547,7 +608,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
           image_url: img.url,
           alt: img.alt || undefined,
           sort_order: i,
-          is_featured: i === 0,
+          is_primary: i === 0,
         })),
       // variants sent separately via /product-variants/bulk after product save
       faqs: values.faqs.map((f, i) => ({
@@ -581,6 +642,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
           });
         }
         toast.success(msg);
+        router.push("/products");
       } else {
         const { id, message } = await createProduct(body);
         if (variantPayload.length > 0) {
@@ -1106,7 +1168,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
               name="status"
               render={({ field }) => (
                 <Select
-                  items={{ active: "Active", draft: "Draft", archived: "Archived" }}
+                  items={{ published: "Published", draft: "Draft", archived: "Archived" }}
                   value={field.value}
                   onValueChange={field.onChange}
                 >

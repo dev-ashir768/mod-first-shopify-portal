@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { imgUrl } from "@/lib/utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -84,7 +85,7 @@ function ImageUploadBox({
         <div className="relative inline-block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={value}
+            src={imgUrl(value)}
             alt={label}
             className="h-32 w-auto max-w-xs rounded-xl border border-border object-cover"
           />
@@ -130,12 +131,6 @@ export function CategoryForm({ category }: { category?: ProductCategoryRow }) {
 
   const [image, setImage] = React.useState<string | null>(
     category?.image_url ?? category?.image ?? null
-  );
-  const [banner, setBanner] = React.useState<string | null>(
-    category?.banner ?? null
-  );
-  const [icon, setIcon] = React.useState<string | null>(
-    category?.icon ?? null
   );
   const [parents, setParents] = React.useState<ProductCategoryRow[]>([]);
   const [saving, setSaving] = React.useState(false);
@@ -186,10 +181,7 @@ export function CategoryForm({ category }: { category?: ProductCategoryRow }) {
         description: values.description || undefined,
         parent_id: values.parent_id ? Number(values.parent_id) : null,
         is_active: values.is_active,
-        // Image fields — include whatever is set
-        ...(image !== undefined ? { image: image, image_url: image } : {}),
-        ...(banner !== undefined ? { banner } : {}),
-        ...(icon !== undefined ? { icon } : {}),
+        image_url: image ?? undefined,
       };
 
       const msg = isEdit
@@ -299,24 +291,12 @@ export function CategoryForm({ category }: { category?: ProductCategoryRow }) {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Images</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-6 sm:grid-cols-3">
+              <CardContent>
                 <ImageUploadBox
                   label="Category image"
                   value={image}
                   onChange={setImage}
                   hint="Main listing image"
-                />
-                <ImageUploadBox
-                  label="Banner"
-                  value={banner}
-                  onChange={setBanner}
-                  hint="Wide banner for category page"
-                />
-                <ImageUploadBox
-                  label="Icon"
-                  value={icon}
-                  onChange={setIcon}
-                  hint="Small icon / thumbnail"
                 />
               </CardContent>
             </Card>
