@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { apiErrorMessage } from "@/lib/auth-api";
-import { uploadImage } from "@/lib/upload-api";
+import { uploadImage, deleteFile } from "@/lib/upload-api";
 import {
   createProduct,
   updateProduct,
@@ -735,6 +735,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
   const [images, setImages] = React.useState<ProductImageRow[]>(
     product?.images ?? []
   );
+  const [removedImageUrls, setRemovedImageUrls] = React.useState<string[]>([]);
   const [imgUploading, setImgUploading] = React.useState(false);
 
   // Colors + sizes for variant selects
@@ -897,7 +898,15 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       is_active: true,
       is_featured: false,
       is_customizable: true,
-      // images managed separately via product-images API — not sent here
+      images: images
+        .filter((img) => img.url && !img.url.startsWith("blob:"))
+        .map((img, i) => ({
+          ...(img.id ? { id: img.id } : {}),
+          image_url: img.url,
+          alt: img.alt || undefined,
+          sort_order: i,
+          is_primary: i === 0,
+        })),
       // variants sent separately via /product-variants/bulk after product save
       faqs: values.faqs.map((f, i) => ({
         ...(f.id ? { id: f.id } : {}),
@@ -918,6 +927,17 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
     });
 
     try {
+      // Delete removed images from storage
+      if (removedImageUrls.length > 0) {
+        await Promise.allSettled(
+          removedImageUrls.map((url) => {
+            const filename = url.split("/").pop() ?? "";
+            return filename ? deleteFile(filename, "products") : Promise.resolve();
+          })
+        );
+        setRemovedImageUrls([]);
+      }
+
       if (isEdit) {
         const msg = await updateProduct(product.id, body);
 
@@ -1055,7 +1075,13 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
               <ProductImageGrid
                 images={images}
                 onAdd={handleImagesAdd}
-                onRemove={(i) => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                onRemove={(i) => setImages((prev) => {
+                  const removed = prev[i];
+                  if (removed?.url && !removed.url.startsWith("blob:")) {
+                    setRemovedImageUrls((r) => [...r, removed.url]);
+                  }
+                  return prev.filter((_, idx) => idx !== i);
+                })}
                 uploading={imgUploading}
               />
             )}
