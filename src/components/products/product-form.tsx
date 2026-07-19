@@ -82,7 +82,6 @@ const variantSchema = z.object({
   sku: z.string().optional(),
   price: z.string().optional(),
   sale_price: z.string().optional(),
-  quantity: z.string().optional(),
   status: z.enum(VARIANT_STATUSES),
 });
 
@@ -792,7 +791,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
         sku: v.sku ?? "",
         price: v.price != null ? String(v.price) : "",
         sale_price: v.sale_price != null ? String(v.sale_price) : "",
-        quantity: v.quantity != null ? String(v.quantity) : "",
         status: (v.status as typeof VARIANT_STATUSES[number]) ?? "active",
       })),
       faqs: (product?.faqs ?? []).map((f) => ({
@@ -922,7 +920,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       sku: v.sku || undefined,
       price: parseNum(v.price),
       sale_price: parseNum(v.sale_price),
-      quantity: parseInt2(v.quantity),
       status: v.status,
       is_active: true,
     });
@@ -1182,7 +1179,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                         <th className="min-w-24 px-3 py-2 text-left font-medium">SKU</th>
                         <th className="min-w-24 px-3 py-2 text-left font-medium">Price</th>
                         <th className="min-w-24 px-3 py-2 text-left font-medium">Sale price</th>
-                        <th className="min-w-20 px-3 py-2 text-left font-medium">Qty</th>
                         <th className="min-w-28 px-3 py-2 text-left font-medium">Status</th>
                         <th className="w-8 px-3 py-2"></th>
                       </tr>
@@ -1274,16 +1270,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                               />
                             </div>
                           </td>
-                          {/* Qty */}
-                          <td className="px-2 py-2">
-                            <Input
-                              type="number"
-                              min="0"
-                              placeholder="0"
-                              className="h-8 text-sm"
-                              {...register(`variants.${idx}.quantity`)}
-                            />
-                          </td>
                           {/* Status */}
                           <td className="px-2 py-2">
                             <Controller
@@ -1326,7 +1312,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => appendVariant({ color_id: "", size_id: "", sku: "", price: "", sale_price: "", quantity: "", status: "active" })}
+                onClick={() => appendVariant({ color_id: "", size_id: "", sku: "", price: "", sale_price: "", status: "active" })}
               >
                 <Plus className="size-4" />
                 Add variant
