@@ -3,20 +3,18 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bell, Loader2, LogOut, Package, Search,
-  Settings, ShoppingCart, Store, Tag, Users,
+  Bell, Home, Loader2, LogOut, Package, Percent,
+  Search, Settings, ShoppingCart, Store, Tag, Users, X,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Command,
-  CommandDialog,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +40,7 @@ const TYPE_CONFIG: Record<
   {
     label: string;
     icon: React.ElementType;
+    color: string;
     href: (item: AdminSearchItem) => string;
     display: (item: AdminSearchItem) => string;
     sub: (item: AdminSearchItem) => string | undefined;
@@ -50,6 +49,7 @@ const TYPE_CONFIG: Record<
   products: {
     label: "Products",
     icon: Package,
+    color: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400",
     href: (item) => `/products/${item.id}`,
     display: (item) => String(item.title ?? item.name ?? `Product #${item.id}`),
     sub: (item) =>
@@ -64,6 +64,7 @@ const TYPE_CONFIG: Record<
   orders: {
     label: "Orders",
     icon: ShoppingCart,
+    color: "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400",
     href: () => `/orders`,
     display: (item) => String(item.order_number ?? `#${item.id}`),
     sub: (item) =>
@@ -76,6 +77,7 @@ const TYPE_CONFIG: Record<
   users: {
     label: "Customers",
     icon: Users,
+    color: "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400",
     href: () => `/customers`,
     display: (item) =>
       String(item.full_name ?? item.name ?? item.email ?? `User #${item.id}`),
@@ -84,6 +86,7 @@ const TYPE_CONFIG: Record<
   vendors: {
     label: "Vendors",
     icon: Store,
+    color: "bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400",
     href: () => `/settings`,
     display: (item) =>
       String(item.name ?? item.full_name ?? `Vendor #${item.id}`),
@@ -92,6 +95,7 @@ const TYPE_CONFIG: Record<
   coupons: {
     label: "Coupons",
     icon: Tag,
+    color: "bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400",
     href: () => `/discounts`,
     display: (item) => String(item.code ?? item.name ?? `Coupon #${item.id}`),
     sub: (item) => (item.status ? String(item.status) : undefined),
@@ -99,6 +103,17 @@ const TYPE_CONFIG: Record<
 };
 
 const ALL_TYPES = Object.keys(TYPE_CONFIG) as AdminSearchType[];
+
+// ─── Quick nav links shown when no query ──────────────────────────────────────
+
+const QUICK_LINKS = [
+  { label: "Home", href: "/", icon: Home, color: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
+  { label: "Orders", href: "/orders", icon: ShoppingCart, color: "bg-orange-100 text-orange-600 dark:bg-orange-900/40 dark:text-orange-400" },
+  { label: "Products", href: "/products", icon: Package, color: "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400" },
+  { label: "Customers", href: "/customers", icon: Users, color: "bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-400" },
+  { label: "Discounts", href: "/discounts", icon: Percent, color: "bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400" },
+  { label: "Settings", href: "/settings", icon: Settings, color: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300" },
+];
 
 // ─── Debounce ─────────────────────────────────────────────────────────────────
 
@@ -245,91 +260,151 @@ export function TopBar() {
         </DropdownMenu>
       </div>
 
-      {/* Global Search Dialog — POST /search/admin */}
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <Command shouldFilter={false}>
-          <div className="flex items-center border-b border-border px-3">
-            <Search className="mr-2 size-4 shrink-0 text-muted-foreground" />
-            <CommandInput
-              placeholder="Search products, orders, customers…"
-              value={query}
-              onValueChange={setQuery}
-              className="border-0 focus:ring-0"
-            />
-            {loading && (
-              <Loader2 className="ml-2 size-4 shrink-0 animate-spin text-muted-foreground" />
-            )}
-          </div>
+      {/* Global Search Dialog */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="overflow-hidden p-0 shadow-2xl sm:max-w-2xl [&>button]:hidden">
+          <Command shouldFilter={false} className="rounded-xl">
 
-          <CommandList className="max-h-[420px]">
-            {/* Hint before typing */}
-            {debounced.length < 2 && (
-              <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                Type at least 2 characters to search across products, orders, customers, vendors and coupons.
-              </div>
-            )}
+            {/* ── Search input ── */}
+            <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+              {loading
+                ? <Loader2 className="size-5 shrink-0 animate-spin text-muted-foreground" />
+                : <Search className="size-5 shrink-0 text-muted-foreground" />
+              }
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+                placeholder="Search products, orders, customers, vendors…"
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery("")}
+                  className="flex size-5 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-muted/80"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
+              <kbd className="hidden shrink-0 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline">
+                Esc
+              </kbd>
+            </div>
 
-            {/* No results */}
-            {!loading && debounced.length >= 2 && totalHits === 0 && (
-              <CommandEmpty>No results for &ldquo;{debounced}&rdquo;</CommandEmpty>
-            )}
+            <CommandList className="max-h-[480px] overflow-y-auto">
 
-            {/* Grouped results by type */}
-            {ALL_TYPES.map((type) => {
-              const items = results[type];
-              if (!items?.length) return null;
-              const cfg = TYPE_CONFIG[type];
-              const Icon = cfg.icon;
-              return (
-                <CommandGroup key={type} heading={cfg.label}>
-                  {items.map((item) => {
-                    const sub = cfg.sub(item);
-                    return (
-                      <CommandItem
-                        key={`${type}-${item.id}`}
-                        value={`${type}-${item.id}`}
-                        onSelect={() => navigate(cfg.href(item))}
-                        className="flex cursor-pointer items-center gap-3 px-3 py-2"
-                      >
-                        <Icon className="size-4 shrink-0 text-muted-foreground" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{cfg.display(item)}</p>
-                          {sub && (
-                            <p className="truncate text-xs capitalize text-muted-foreground">{sub}</p>
-                          )}
-                        </div>
-                      </CommandItem>
-                    );
-                  })}
+              {/* ── Quick links (no query) ── */}
+              {debounced.length < 2 && (
+                <CommandGroup heading="Quick navigation">
+                  <div className="grid grid-cols-3 gap-1 p-2">
+                    {QUICK_LINKS.map((link) => {
+                      const Icon = link.icon;
+                      return (
+                        <CommandItem
+                          key={link.href}
+                          value={link.href}
+                          onSelect={() => navigate(link.href)}
+                          className="flex cursor-pointer flex-col items-center gap-2 rounded-lg p-3 text-center hover:bg-accent"
+                        >
+                          <span className={`flex size-9 items-center justify-center rounded-lg ${link.color}`}>
+                            <Icon className="size-4" />
+                          </span>
+                          <span className="text-xs font-medium">{link.label}</span>
+                        </CommandItem>
+                      );
+                    })}
+                  </div>
                 </CommandGroup>
-              );
-            })}
-          </CommandList>
+              )}
 
-          {/* Footer keyboard hints */}
-          {totalHits > 0 && (
-            <div className="flex items-center justify-between border-t border-border px-3 py-2">
+              {/* ── No results ── */}
+              {!loading && debounced.length >= 2 && totalHits === 0 && (
+                <div className="flex flex-col items-center gap-3 py-12 text-center">
+                  <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+                    <Search className="size-6 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">No results for &ldquo;{debounced}&rdquo;</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Try a different search term</p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Grouped results ── */}
+              {ALL_TYPES.map((type) => {
+                const items = results[type];
+                if (!items?.length) return null;
+                const cfg = TYPE_CONFIG[type];
+                const Icon = cfg.icon;
+                return (
+                  <CommandGroup
+                    key={type}
+                    heading={
+                      <div className="flex items-center gap-2">
+                        <span className={`flex size-5 items-center justify-center rounded ${cfg.color}`}>
+                          <Icon className="size-3" />
+                        </span>
+                        {cfg.label}
+                        <span className="ml-auto text-xs text-muted-foreground">{items.length}</span>
+                      </div>
+                    }
+                  >
+                    {items.map((item) => {
+                      const sub = cfg.sub(item);
+                      return (
+                        <CommandItem
+                          key={`${type}-${item.id}`}
+                          value={`${type}-${item.id}`}
+                          onSelect={() => navigate(cfg.href(item))}
+                          className="mx-2 mb-0.5 flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5"
+                        >
+                          <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${cfg.color}`}>
+                            <Icon className="size-4" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium leading-tight">
+                              {cfg.display(item)}
+                            </p>
+                            {sub && (
+                              <p className="mt-0.5 truncate text-xs capitalize text-muted-foreground">
+                                {sub}
+                              </p>
+                            )}
+                          </div>
+                          <span className="shrink-0 text-xs text-muted-foreground">↵</span>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                );
+              })}
+            </CommandList>
+
+            {/* ── Footer ── */}
+            <div className="flex items-center justify-between border-t border-border bg-muted/30 px-4 py-2">
               <p className="text-xs text-muted-foreground">
-                {totalHits} result{totalHits > 1 ? "s" : ""}
+                {debounced.length >= 2
+                  ? totalHits > 0
+                    ? `${totalHits} result${totalHits > 1 ? "s" : ""} found`
+                    : "No results"
+                  : "Search across your entire store"}
               </p>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>
-                  <kbd className="rounded border border-border px-1 py-0.5 text-[10px]">↑↓</kbd>{" "}
+                <span className="flex items-center gap-1">
+                  <kbd className="rounded border border-border bg-background px-1 py-0.5 text-[10px]">↑↓</kbd>
                   navigate
                 </span>
-                <span>
-                  <kbd className="rounded border border-border px-1 py-0.5 text-[10px]">↵</kbd>{" "}
+                <span className="flex items-center gap-1">
+                  <kbd className="rounded border border-border bg-background px-1 py-0.5 text-[10px]">↵</kbd>
                   open
-                </span>
-                <span>
-                  <kbd className="rounded border border-border px-1 py-0.5 text-[10px]">Esc</kbd>{" "}
-                  close
                 </span>
               </div>
             </div>
-          )}
-        </Command>
-      </CommandDialog>
+
+          </Command>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
