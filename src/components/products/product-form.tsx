@@ -897,14 +897,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       is_active: true,
       is_featured: false,
       is_customizable: true,
-      images: images
-        .filter((img) => img.url && !img.url.startsWith("blob:"))
-        .map((img, i) => ({
-          image_url: img.url,
-          alt: img.alt || undefined,
-          sort_order: i,
-          is_primary: i === 0,
-        })),
+      // images managed separately via product-images API — not sent here
       // variants sent separately via /product-variants/bulk after product save
       faqs: values.faqs.map((f, i) => ({
         ...(f.id ? { id: f.id } : {}),

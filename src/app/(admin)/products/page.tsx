@@ -43,10 +43,11 @@ const columns: ColumnDef<ProductRow>[] = [
   {
     accessorKey: "title",
     header: "Product",
+    size: 320,
     cell: ({ row }) => {
       const r = row.original;
       return (
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 max-w-xs">
           {r.featured_image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
