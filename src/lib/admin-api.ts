@@ -197,6 +197,16 @@ export async function listColors(
   return parseList<ColorRow>(data, params.limit);
 }
 
+export async function createColorAndReturn(body: { name: string; hex_code: string }): Promise<ColorRow> {
+  const { data } = await api.post("colors", { ...body, is_active: true });
+  return (data?.payload ?? data?.data ?? data) as ColorRow;
+}
+
+export async function createSizeAndReturn(body: { name: string; display_name: string }): Promise<SizeRow> {
+  const { data } = await api.post("sizes", { ...body, is_active: true });
+  return (data?.payload ?? data?.data ?? data) as SizeRow;
+}
+
 export const MENU_LINK_TYPES = [
   "category",
   "product",

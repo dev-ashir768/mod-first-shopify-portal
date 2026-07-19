@@ -52,8 +52,9 @@ import {
   fetchAllVendors,
   listColors,
   listSizes,
+  createColorAndReturn,
+  createSizeAndReturn,
   PRODUCT_STATUSES,
-  WEIGHT_UNITS,
   type ProductDetailRow,
   type ProductImageRow,
   type ProductCategoryRow,
@@ -61,6 +62,12 @@ import {
   type ColorRow,
   type SizeRow,
 } from "@/lib/admin-api";
+import {
+  Dialog as InlineDialog,
+  DialogContent as InlineDialogContent,
+  DialogHeader as InlineDialogHeader,
+  DialogTitle as InlineDialogTitle,
+} from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { cn, imgUrl } from "@/lib/utils";
 
@@ -95,13 +102,11 @@ const productFormSchema = z.object({
   cost_per_item: z.string().optional(),
   // Inventory
   sku: z.string().optional(),
-  barcode: z.string().optional(),
   track_quantity: z.boolean(),
   quantity: z.string().optional(),
   // Shipping
   requires_shipping: z.boolean(),
   weight: z.string().optional(),
-  weight_unit: z.string(),
   // Organization
   vendor: z.string().optional(),
   category: z.string().optional(),
@@ -399,6 +404,306 @@ function VendorSelect({
   );
 }
 
+// ─── Color Combobox with inline create ───────────────────────────────────────
+
+function ColorCombobox({
+  value,
+  onChange,
+  colors,
+  onCreated,
+  hasError,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  colors: ColorRow[];
+  onCreated: (c: ColorRow) => void;
+  hasError?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const [creating, setCreating] = React.useState(false);
+  const [newName, setNewName] = React.useState("");
+  const [newHex, setNewHex] = React.useState("#000000");
+  const [saving, setSaving] = React.useState(false);
+
+  const filtered = colors.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const selected = colors.find((c) => String(c.id) === value);
+
+  async function handleCreate() {
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const created = await createColorAndReturn({ name: newName.trim(), hex_code: newHex });
+      onCreated(created);
+      onChange(String(created.id));
+      setCreating(false);
+      setOpen(false);
+      setNewName("");
+      setNewHex("#000000");
+    } catch {
+      toast.error("Failed to create color.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          className={cn(
+            "flex h-8 w-full min-w-[100px] items-center justify-between rounded-md border bg-card px-2 text-sm",
+            "hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring",
+            hasError ? "border-destructive" : "border-input"
+          )}
+        >
+          {selected ? (
+            <span className="flex items-center gap-1.5 truncate">
+              <span
+                className="inline-block size-3 shrink-0 rounded-full border border-border"
+                style={{ backgroundColor: selected.hex_code }}
+              />
+              <span className="truncate">{selected.name}</span>
+            </span>
+          ) : (
+            <span className="text-muted-foreground">Color</span>
+          )}
+          <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-50" />
+        </PopoverTrigger>
+        <PopoverContent className="w-52 p-0" align="start">
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Search colors…"
+              value={search}
+              onValueChange={setSearch}
+            />
+            <CommandList className="max-h-48">
+              <CommandGroup>
+                {filtered.map((c) => (
+                  <CommandItem
+                    key={c.id}
+                    value={String(c.id)}
+                    onSelect={() => { onChange(String(c.id)); setOpen(false); setSearch(""); }}
+                    className="flex items-center gap-2"
+                  >
+                    <span
+                      className="inline-block size-3 shrink-0 rounded-full border border-border"
+                      style={{ backgroundColor: c.hex_code }}
+                    />
+                    <span className="flex-1 truncate">{c.name}</span>
+                    {value === String(c.id) && <Check className="size-3 text-primary" />}
+                  </CommandItem>
+                ))}
+                {filtered.length === 0 && (
+                  <p className="py-2 text-center text-xs text-muted-foreground">No colors found</p>
+                )}
+              </CommandGroup>
+            </CommandList>
+            <div className="border-t border-border p-1">
+              <button
+                type="button"
+                onClick={() => { setCreating(true); setOpen(false); setNewName(search); }}
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs font-medium text-primary hover:bg-accent"
+              >
+                <Plus className="size-3" /> Add new color
+              </button>
+            </div>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      <InlineDialog open={creating} onOpenChange={setCreating}>
+        <InlineDialogContent className="sm:max-w-xs">
+          <InlineDialogHeader>
+            <InlineDialogTitle>New color</InlineDialogTitle>
+          </InlineDialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                autoFocus
+                placeholder="e.g. Royal Blue"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Hex color</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={newHex}
+                  onChange={(e) => setNewHex(e.target.value)}
+                  className="size-9 cursor-pointer rounded-md border border-border p-0.5"
+                />
+                <Input
+                  value={newHex}
+                  onChange={(e) => setNewHex(e.target.value)}
+                  placeholder="#000000"
+                  className="font-mono"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button type="button" variant="outline" className="flex-1" onClick={() => setCreating(false)}>
+                Cancel
+              </Button>
+              <Button type="button" className="flex-1" disabled={!newName.trim() || saving} onClick={handleCreate}>
+                {saving && <Loader2 className="size-3 animate-spin" />}
+                Create
+              </Button>
+            </div>
+          </div>
+        </InlineDialogContent>
+      </InlineDialog>
+    </>
+  );
+}
+
+// ─── Size Combobox with inline create ────────────────────────────────────────
+
+function SizeCombobox({
+  value,
+  onChange,
+  sizes,
+  onCreated,
+  hasError,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  sizes: SizeRow[];
+  onCreated: (s: SizeRow) => void;
+  hasError?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const [creating, setCreating] = React.useState(false);
+  const [newName, setNewName] = React.useState("");
+  const [newDisplay, setNewDisplay] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+
+  const filtered = sizes.filter((s) =>
+    (s.display_name ?? s.name).toLowerCase().includes(search.toLowerCase())
+  );
+  const selected = sizes.find((s) => String(s.id) === value);
+
+  async function handleCreate() {
+    if (!newName.trim()) return;
+    setSaving(true);
+    try {
+      const created = await createSizeAndReturn({
+        name: newName.trim(),
+        display_name: newDisplay.trim() || newName.trim(),
+      });
+      onCreated(created);
+      onChange(String(created.id));
+      setCreating(false);
+      setOpen(false);
+      setNewName("");
+      setNewDisplay("");
+    } catch {
+      toast.error("Failed to create size.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger
+          className={cn(
+            "flex h-8 w-full min-w-[90px] items-center justify-between rounded-md border bg-card px-2 text-sm",
+            "hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring",
+            hasError ? "border-destructive" : "border-input"
+          )}
+        >
+          <span className={selected ? "" : "text-muted-foreground"}>
+            {selected ? (selected.display_name ?? selected.name) : "Size"}
+          </span>
+          <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-50" />
+        </PopoverTrigger>
+        <PopoverContent className="w-44 p-0" align="start">
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Search sizes…"
+              value={search}
+              onValueChange={setSearch}
+            />
+            <CommandList className="max-h-48">
+              <CommandGroup>
+                {filtered.map((s) => (
+                  <CommandItem
+                    key={s.id}
+                    value={String(s.id)}
+                    onSelect={() => { onChange(String(s.id)); setOpen(false); setSearch(""); }}
+                    className="flex items-center gap-2"
+                  >
+                    <span className="flex-1 truncate">{s.display_name ?? s.name}</span>
+                    {value === String(s.id) && <Check className="size-3 text-primary" />}
+                  </CommandItem>
+                ))}
+                {filtered.length === 0 && (
+                  <p className="py-2 text-center text-xs text-muted-foreground">No sizes found</p>
+                )}
+              </CommandGroup>
+            </CommandList>
+            <div className="border-t border-border p-1">
+              <button
+                type="button"
+                onClick={() => { setCreating(true); setOpen(false); setNewName(search); setNewDisplay(search); }}
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs font-medium text-primary hover:bg-accent"
+              >
+                <Plus className="size-3" /> Add new size
+              </button>
+            </div>
+          </Command>
+        </PopoverContent>
+      </Popover>
+
+      <InlineDialog open={creating} onOpenChange={setCreating}>
+        <InlineDialogContent className="sm:max-w-xs">
+          <InlineDialogHeader>
+            <InlineDialogTitle>New size</InlineDialogTitle>
+          </InlineDialogHeader>
+          <div className="space-y-3 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Code <span className="text-muted-foreground">(e.g. XL)</span></label>
+              <Input
+                autoFocus
+                placeholder="XL"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Display name <span className="text-muted-foreground">(e.g. Extra Large)</span></label>
+              <Input
+                placeholder="Extra Large"
+                value={newDisplay}
+                onChange={(e) => setNewDisplay(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button type="button" variant="outline" className="flex-1" onClick={() => setCreating(false)}>
+                Cancel
+              </Button>
+              <Button type="button" className="flex-1" disabled={!newName.trim() || saving} onClick={handleCreate}>
+                {saving && <Loader2 className="size-3 animate-spin" />}
+                Create
+              </Button>
+            </div>
+          </div>
+        </InlineDialogContent>
+      </InlineDialog>
+    </>
+  );
+}
+
 // ─── Section Card ─────────────────────────────────────────────────────────────
 
 function Section({
@@ -463,12 +768,10 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       compare_at_price: product?.compare_at_price != null ? String(product.compare_at_price) : "",
       cost_per_item: product?.cost_per_item != null ? String(product.cost_per_item) : "",
       sku: product?.sku ?? "",
-      barcode: product?.barcode ?? "",
       track_quantity: product?.track_quantity ?? true,
       quantity: product?.quantity != null ? String(product.quantity) : "",
-      requires_shipping: product?.requires_shipping ?? true,
+      requires_shipping: product?.requires_shipping ?? false,
       weight: product?.weight != null ? String(product.weight) : "",
-      weight_unit: product?.weight_unit ?? "kg",
       vendor: typeof product?.vendor === "object" && product?.vendor !== null
         ? String((product.vendor as { id?: number | string }).id ?? "")
         : product?.vendor ?? "",
@@ -588,10 +891,8 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       sale_price: parseNum(values.compare_at_price) ?? undefined,
       cost_price: parseNum(values.cost_per_item) ?? undefined,
       sku: values.sku || undefined,
-      barcode: values.barcode || undefined,
       quantity: parseInt2(values.quantity),
       weight: parseNum(values.weight) ?? undefined,
-      weight_unit: values.weight ? values.weight_unit : undefined,
       vendor_id: values.vendor ? Number(values.vendor) || undefined : undefined,
       category_id: values.category ? Number(values.category) || undefined : undefined,
       tags: values.tags
@@ -651,8 +952,8 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
             variants: variantPayload,
           });
         }
-        toast.success(message);
-        router.push(`/products/${id}`);
+        toast.success(message ?? "Product created successfully.");
+        router.push("/products");
       }
     } catch (err) {
       toast.error(
@@ -803,15 +1104,9 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
           {/* Inventory */}
           <Section title="Inventory">
             <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="p-sku">SKU (Stock Keeping Unit)</Label>
-                  <Input id="p-sku" placeholder="SKU-001" {...register("sku")} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="p-barcode">Barcode (ISBN, UPC, GTIN, etc.)</Label>
-                  <Input id="p-barcode" placeholder="012345678901" {...register("barcode")} />
-                </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="p-sku">SKU (Stock Keeping Unit)</Label>
+                <Input id="p-sku" placeholder="SKU-001" className="max-w-xs" {...register("sku")} />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
@@ -882,37 +1177,15 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                 <>
                   <Separator />
                   <div className="space-y-1.5">
-                    <Label>Weight</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.0"
-                        className="max-w-28"
-                        {...register("weight")}
-                      />
-                      <Controller
-                        control={control}
-                        name="weight_unit"
-                        render={({ field }) => (
-                          <Select
-                            items={Object.fromEntries(WEIGHT_UNITS.map((u) => [u, u]))}
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger className="w-20">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {WEIGHT_UNITS.map((u) => (
-                                <SelectItem key={u} value={u}>{u}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
-                    </div>
+                    <Label>Weight <span className="text-xs text-muted-foreground">(lbs)</span></Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.0"
+                      className="max-w-36"
+                      {...register("weight")}
+                    />
                   </div>
                 </>
               )}
@@ -967,26 +1240,13 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                               name={`variants.${idx}.color_id`}
                               control={control}
                               render={({ field: f }) => (
-                                <Select value={f.value} onValueChange={f.onChange}>
-                                  <SelectTrigger className={cn("h-8 text-sm", errors.variants?.[idx]?.color_id && "border-destructive")}>
-                                    <SelectValue placeholder="Color" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {colors.map((c) => (
-                                      <SelectItem key={c.id} value={String(c.id)}>
-                                        <span className="flex items-center gap-2">
-                                          {c.hex_code && (
-                                            <span
-                                              className="inline-block size-3 rounded-full border border-border"
-                                              style={{ backgroundColor: c.hex_code }}
-                                            />
-                                          )}
-                                          {c.name}
-                                        </span>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <ColorCombobox
+                                  value={f.value}
+                                  onChange={f.onChange}
+                                  colors={colors}
+                                  onCreated={(c) => setColors((prev) => [...prev, c])}
+                                  hasError={!!errors.variants?.[idx]?.color_id}
+                                />
                               )}
                             />
                           </td>
@@ -996,18 +1256,13 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                               name={`variants.${idx}.size_id`}
                               control={control}
                               render={({ field: f }) => (
-                                <Select value={f.value} onValueChange={f.onChange}>
-                                  <SelectTrigger className={cn("h-8 text-sm", errors.variants?.[idx]?.size_id && "border-destructive")}>
-                                    <SelectValue placeholder="Size" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {sizes.map((s) => (
-                                      <SelectItem key={s.id} value={String(s.id)}>
-                                        {s.display_name ?? s.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <SizeCombobox
+                                  value={f.value}
+                                  onChange={f.onChange}
+                                  sizes={sizes}
+                                  onCreated={(s) => setSizes((prev) => [...prev, s])}
+                                  hasError={!!errors.variants?.[idx]?.size_id}
+                                />
                               )}
                             />
                           </td>
