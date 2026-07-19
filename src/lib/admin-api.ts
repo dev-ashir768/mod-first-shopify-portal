@@ -479,7 +479,15 @@ export async function listProducts(
     ...r as ProductRow,
     title: (r.title ?? r.name ?? "") as string,
     price: r.price != null ? (r.price as number) : r.base_price != null ? parseFloat(r.base_price as string) : null,
-    featured_image: (r.featured_image ?? r.image ?? r.thumbnail ?? null) as string | null,
+    featured_image: (r.featured_image ?? r.image ?? r.thumbnail
+      ?? (Array.isArray(r.images) && r.images.length > 0
+          ? ((r.images as Record<string, unknown>[]).find((i) => i.is_primary)?.image_url
+              ?? (r.images as Record<string, unknown>[]).find((i) => i.is_primary)?.url
+              ?? (r.images as Record<string, unknown>[])[0]?.image_url
+              ?? (r.images as Record<string, unknown>[])[0]?.url
+              ?? null)
+          : null)
+      ?? null) as string | null,
   }));
   const pagination = data?.pagination ?? {};
   const total: number =
