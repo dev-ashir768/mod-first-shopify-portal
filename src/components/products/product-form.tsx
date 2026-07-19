@@ -901,7 +901,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       images: images
         .filter((img) => img.url && !img.url.startsWith("blob:"))
         .map((img, i) => ({
-          ...(img.id ? { id: img.id } : {}),
           image_url: img.url,
           alt: img.alt || undefined,
           sort_order: i,
