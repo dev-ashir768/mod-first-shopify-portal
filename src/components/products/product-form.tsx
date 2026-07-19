@@ -208,7 +208,10 @@ function ProductImageGrid({
         multiple
         accept="image/*"
         className="hidden"
-        onChange={(e) => e.target.files?.length && onAdd(e.target.files)}
+        onChange={(e) => {
+          if (e.target.files?.length) onAdd(e.target.files);
+          e.target.value = "";
+        }}
       />
     </div>
   );
@@ -849,29 +852,31 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       })),
     ]);
 
-    // 2. Upload in background and swap blob URLs with real hosted URLs
-    try {
-      const realUrls = await Promise.all(arr.map((f) => uploadImage(f, "products")));
-      setImages((prev) => {
-        const next = [...prev];
-        // The blob URLs we just added are at the tail; replace them
-        const offset = next.length - blobs.length;
-        blobs.forEach((blob, i) => {
-          const idx = next.findIndex((img) => img.url === blob);
-          if (idx !== -1) next[idx] = { ...next[idx], url: realUrls[i] };
-          else if (offset + i < next.length) next[offset + i] = { ...next[offset + i], url: realUrls[i] };
-          URL.revokeObjectURL(blob);
-        });
-        return next;
+    // 2. Upload each file individually; swap blob URL with real URL as each finishes
+    const results = await Promise.allSettled(arr.map((f) => uploadImage(f, "products")));
+
+    setImages((prev) => {
+      const next = [...prev];
+      results.forEach((result, i) => {
+        const idx = next.findIndex((img) => img.url === blobs[i]);
+        if (result.status === "fulfilled") {
+          if (idx !== -1) next[idx] = { ...next[idx], url: result.value };
+          URL.revokeObjectURL(blobs[i]);
+        } else {
+          // Remove failed blob preview
+          if (idx !== -1) next.splice(idx, 1);
+          URL.revokeObjectURL(blobs[i]);
+        }
       });
-    } catch (err) {
-      // Remove the blob previews that failed, revoke object URLs
-      blobs.forEach((b) => URL.revokeObjectURL(b));
-      setImages((prev) => prev.filter((img) => !blobs.includes(img.url)));
-      toast.error(apiErrorMessage(err, "Image upload failed."));
-    } finally {
-      setImgUploading(false);
+      return next;
+    });
+
+    const failed = results.filter((r) => r.status === "rejected").length;
+    if (failed > 0) {
+      toast.error(`${failed} image${failed > 1 ? "s" : ""} failed to upload.`);
     }
+
+    setImgUploading(false);
   };
 
   const onSubmit = async (values: ProductFormValues) => {
