@@ -891,7 +891,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       sale_price: parseNum(values.compare_at_price) ?? undefined,
       cost_price: parseNum(values.cost_per_item) ?? undefined,
       sku: values.sku || undefined,
-      quantity: parseInt2(values.quantity),
       weight: parseNum(values.weight) ?? undefined,
       vendor_id: values.vendor ? Number(values.vendor) || undefined : undefined,
       category_id: values.category ? Number(values.category) || undefined : undefined,

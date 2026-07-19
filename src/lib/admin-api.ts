@@ -491,7 +491,36 @@ export async function listProducts(
 
 export async function getProduct(id: number | string): Promise<ProductDetailRow> {
   const { data } = await api.get(`products/get/${id}`);
-  return data?.payload ?? data?.data ?? data;
+  const raw = data?.payload ?? data?.data ?? data;
+  // Normalize API field names to match the form / ProductDetailRow interface
+  return {
+    ...raw,
+    title: raw.title ?? raw.name ?? "",
+    price: raw.price ?? raw.base_price ?? null,
+    compare_at_price: raw.compare_at_price ?? raw.sale_price ?? null,
+    cost_per_item: raw.cost_per_item ?? raw.cost_price ?? null,
+    meta_description: raw.meta_description ?? raw.meta_desc ?? null,
+    // vendor may come back as an object { id, name } — pull out the id
+    vendor: typeof raw.vendor === "object" && raw.vendor !== null
+      ? String((raw.vendor as { id?: number | string }).id ?? "")
+      : raw.vendor ?? null,
+    vendor_id: raw.vendor_id
+      ?? (typeof raw.vendor === "object" && raw.vendor !== null
+        ? (raw.vendor as { id?: number | string }).id ?? null
+        : null),
+    // category may come back as an object — keep category_id canonical
+    category_id: raw.category_id
+      ?? (typeof raw.category === "object" && raw.category !== null
+        ? (raw.category as { id?: number | string }).id ?? null
+        : null),
+    // images: normalize image_url → url for ProductImageRow
+    images: Array.isArray(raw.images)
+      ? raw.images.map((img: Record<string, unknown>) => ({
+          ...img,
+          url: (img.url ?? img.image_url ?? "") as string,
+        }))
+      : [],
+  } as ProductDetailRow;
 }
 
 export async function createProduct(
