@@ -931,16 +931,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
     });
 
     try {
-      // Delete removed images from storage
-      if (removedImageUrls.length > 0) {
-        await Promise.allSettled(
-          removedImageUrls.map((url) => {
-            const filename = url.split("/").pop() ?? "";
-            return filename ? deleteFile(filename, "products") : Promise.resolve();
-          })
-        );
-        setRemovedImageUrls([]);
-      }
 
       if (isEdit) {
         const msg = await updateProduct(product.id, body);
