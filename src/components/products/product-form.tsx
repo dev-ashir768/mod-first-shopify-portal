@@ -102,7 +102,6 @@ const productFormSchema = z.object({
   cost_per_item: z.string().optional(),
   // Inventory
   sku: z.string().optional(),
-  track_quantity: z.boolean(),
   quantity: z.string().optional(),
   // Shipping
   requires_shipping: z.boolean(),
@@ -768,7 +767,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       compare_at_price: product?.compare_at_price != null ? String(product.compare_at_price) : "",
       cost_per_item: product?.cost_per_item != null ? String(product.cost_per_item) : "",
       sku: product?.sku ?? "",
-      track_quantity: product?.track_quantity ?? true,
       quantity: product?.quantity != null ? String(product.quantity) : "",
       requires_shipping: product?.requires_shipping ?? false,
       weight: product?.weight != null ? String(product.weight) : "",
@@ -824,7 +822,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
   const title = useWatch({ control, name: "title" });
   const priceVal = useWatch({ control, name: "price" });
   const costVal = useWatch({ control, name: "cost_per_item" });
-  const trackQty = useWatch({ control, name: "track_quantity" });
   const requiresShipping = useWatch({ control, name: "requires_shipping" });
   const metaTitle = useWatch({ control, name: "meta_title" });
   const metaDesc = useWatch({ control, name: "meta_description" });
@@ -919,8 +916,7 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       })),
     };
 
-    const variantPayload = values.variants.map((v) => ({
-      ...(v.id ? { id: v.id } : {}),
+    const makeVariantBody = (v: typeof values.variants[number]) => ({
       color_id: Number(v.color_id),
       size_id: Number(v.size_id),
       sku: v.sku || undefined,
@@ -929,26 +925,36 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
       quantity: parseInt2(v.quantity),
       status: v.status,
       is_active: true,
-    }));
+    });
 
     try {
       if (isEdit) {
         const msg = await updateProduct(product.id, body);
-        // Bulk-upsert variants
-        if (variantPayload.length > 0) {
+
+        // Existing variants → PUT each one individually
+        const existingVariants = values.variants.filter((v) => v.id);
+        for (const v of existingVariants) {
+          await api.put(`product-variants/${v.id}`, makeVariantBody(v));
+        }
+
+        // New variants (no id) → bulk create
+        const newVariants = values.variants.filter((v) => !v.id).map(makeVariantBody);
+        if (newVariants.length > 0) {
           await api.post("product-variants/bulk", {
             product_id: product.id,
-            variants: variantPayload,
+            variants: newVariants,
           });
         }
+
         toast.success(msg);
         router.push("/products");
       } else {
         const { id, message } = await createProduct(body);
-        if (variantPayload.length > 0) {
+        const newVariants = values.variants.map(makeVariantBody);
+        if (newVariants.length > 0) {
           await api.post("product-variants/bulk", {
             product_id: id,
-            variants: variantPayload,
+            variants: newVariants,
           });
         }
         toast.success(message ?? "Product created successfully.");
@@ -1107,39 +1113,6 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
                 <Label htmlFor="p-sku">SKU (Stock Keeping Unit)</Label>
                 <Input id="p-sku" placeholder="SKU-001" className="max-w-xs" {...register("sku")} />
               </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Track quantity</p>
-                  <p className="text-xs text-muted-foreground">
-                    Manage stock levels for this product
-                  </p>
-                </div>
-                <Controller
-                  control={control}
-                  name="track_quantity"
-                  render={({ field }) => (
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={field.value}
-                      onClick={() => field.onChange(!field.value)}
-                      className={cn(
-                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                        field.value ? "bg-primary" : "bg-input"
-                      )}
-                    >
-                      <span className={cn("pointer-events-none inline-block size-5 rounded-full bg-white shadow-lg transition-transform duration-200", field.value ? "translate-x-5" : "translate-x-0")} />
-                    </button>
-                  )}
-                />
-              </div>
-              {trackQty && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="p-qty">Quantity</Label>
-                  <Input id="p-qty" type="number" min="0" placeholder="0" className="max-w-36" {...register("quantity")} />
-                </div>
-              )}
             </div>
           </Section>
 
