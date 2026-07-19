@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { apiErrorMessage } from "@/lib/auth-api";
-import { uploadImage, deleteFile } from "@/lib/upload-api";
+import { uploadImage, deleteFile, imageUrlToPath } from "@/lib/upload-api";
 import {
   createProduct,
   updateProduct,
@@ -931,6 +931,16 @@ export function ProductForm({ product }: { product?: ProductDetailRow }) {
     });
 
     try {
+      // Delete removed images from storage
+      if (removedImageUrls.length > 0) {
+        await Promise.allSettled(
+          removedImageUrls.map((url) => {
+            const path = imageUrlToPath(url);
+            return path ? deleteFile(path) : Promise.resolve();
+          })
+        );
+        setRemovedImageUrls([]);
+      }
 
       if (isEdit) {
         const msg = await updateProduct(product.id, body);

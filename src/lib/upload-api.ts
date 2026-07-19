@@ -76,8 +76,17 @@ export async function uploadImages(files: File[], folder = "general"): Promise<s
     .filter(Boolean) as string[];
 }
 
-export async function deleteFile(filename: string, folder?: string): Promise<string> {
-  const qs = folder ? `?folder=${encodeURIComponent(folder)}` : "";
-  const { data } = await api.delete(`upload/${encodeURIComponent(filename)}${qs}`);
+/** Delete a file by its server path, e.g. /uploads/products/filename.webp */
+export async function deleteFile(path: string): Promise<string> {
+  const { data } = await api.delete(`upload?path=${encodeURIComponent(path)}`);
   return (data?.message as string) ?? "File deleted.";
+}
+
+/** Extract the server path from a full image URL, e.g. https://api.com/uploads/x.webp → /uploads/x.webp */
+export function imageUrlToPath(url: string): string | null {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return null;
+  }
 }
