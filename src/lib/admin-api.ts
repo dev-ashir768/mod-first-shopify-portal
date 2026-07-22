@@ -1057,3 +1057,52 @@ export async function updateWebsiteSettings(
   const { data } = await api.put(`website-settings/${id}`, body);
   return (data?.message as string) ?? "Settings saved.";
 }
+
+// ─── Footer Sections ──────────────────────────────────────────────────────────
+
+export interface FooterLinkRow {
+  id?: number | string;
+  name: string;
+  url: string;
+  type?: string;      // url / route / email / phone
+  target?: string;    // _self / _blank
+  icon?: string | null;
+  badge?: string | null;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export interface FooterSectionRow {
+  id: number | string;
+  section_key?: string;
+  title?: string;
+  description?: string;
+  image_url?: string | null;
+  sort_order?: number;
+  is_active?: boolean;
+  links?: FooterLinkRow[];
+  created_at?: string;
+}
+
+export async function listFooterSections(): Promise<FooterSectionRow[]> {
+  const { data } = await api.post("footer-sections/list", { page: 1, limit: 50 });
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const rows: Json[] = p.rows ?? p.list ?? p.items ?? p.data ?? (Array.isArray(p) ? p : []);
+  return rows as FooterSectionRow[];
+}
+
+export async function updateFooterSection(
+  id: number | string,
+  body: Partial<FooterSectionRow>
+): Promise<string> {
+  const { data } = await api.put(`footer-sections/${id}`, body);
+  return (data?.message as string) ?? "Footer section updated.";
+}
+
+export async function manageFooterLinks(
+  sectionId: number | string,
+  links: ({ _action: "add" | "update" | "delete"; id?: number | string; [k: string]: unknown })[]
+): Promise<string> {
+  const { data } = await api.post(`footer-sections/${sectionId}/links`, { links });
+  return (data?.message as string) ?? "Links saved.";
+}

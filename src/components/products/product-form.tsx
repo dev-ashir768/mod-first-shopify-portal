@@ -125,11 +125,6 @@ const parseNum = (v?: string) => {
   const n = parseFloat(v);
   return isNaN(n) ? undefined : n;
 };
-const parseInt2 = (v?: string) => {
-  if (!v || v.trim() === "") return undefined;
-  const n = parseInt(v, 10);
-  return isNaN(n) ? undefined : n;
-};
 
 const slugify = (s: string) =>
   s

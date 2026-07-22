@@ -34,6 +34,7 @@ import { DataTable } from "@/components/data-table";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { MediaUpload } from "@/components/media-upload";
 import { StatusBadge } from "@/components/status-badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiErrorMessage } from "@/lib/auth-api";
 import {
   BLOG_STATUSES,
@@ -42,6 +43,7 @@ import {
   updateBlog,
   type BlogRow,
 } from "@/lib/admin-api";
+import { FooterSectionsTab } from "@/components/content/footer-sections-tab";
 
 const PAGE_SIZE = 10;
 
@@ -123,6 +125,7 @@ const columns: ColumnDef<BlogRow>[] = [
 ];
 
 export default function ContentPage() {
+  const [activeTab, setActiveTab] = React.useState<"blogs" | "footer">("blogs");
   const [rows, setRows] = React.useState<BlogRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [page, setPage] = React.useState(0);
@@ -179,8 +182,24 @@ export default function ContentPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Page header + tab switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">Blog posts</h1>
+        <h1 className="text-xl font-bold">Content</h1>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "blogs" | "footer")}>
+          <TabsList>
+            <TabsTrigger value="blogs">Blog posts</TabsTrigger>
+            <TabsTrigger value="footer">Footer sections</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Footer tab */}
+      {activeTab === "footer" && <FooterSectionsTab />}
+
+      {/* Blogs tab */}
+      {activeTab === "blogs" && <>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div />
         <Button
           onClick={() => {
             setEditing(null);
@@ -249,6 +268,7 @@ export default function ContentPage() {
           onPageChange: setPage,
         }}
       />
+      </>}
     </div>
   );
 }
