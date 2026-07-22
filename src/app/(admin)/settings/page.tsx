@@ -6,7 +6,6 @@ import {
   AppWindow,
   Bell,
   Building2,
-  ChevronRight,
   CreditCard,
   Eye,
   EyeOff,
@@ -37,13 +36,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { UsersSection } from "@/components/settings/users-section";
 import { BranchesSection } from "@/components/settings/branches-section";
@@ -51,6 +43,7 @@ import { SizesSection } from "@/components/settings/sizes-section";
 import { ColorsSection } from "@/components/settings/colors-section";
 import { MenusSection } from "@/components/settings/menus-section";
 import { MenuRightsSection } from "@/components/settings/menu-rights-section";
+import { WebsiteSettingsSection } from "@/components/settings/website-settings-section";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
@@ -350,161 +343,7 @@ export default function SettingsPage() {
             {section === "menus" && <MenusSection />}
             {section === "menu-rights" && <MenuRightsSection />}
 
-            {section === "general" && (
-            <div className="flex flex-col gap-4">
-              <Card className="gap-0 py-0">
-                <div className="px-4 py-3">
-                  <h2 className="text-sm font-semibold">Store contact details</h2>
-                </div>
-                <Separator />
-                <CardContent className="p-0">
-                  <button className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-muted/60">
-                    <Store className="size-4 text-muted-foreground" />
-                    <span className="flex-1">
-                      <span className="block text-sm font-medium">modeFirst</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {user?.email ?? "info@modefirst.com"}
-                      </span>
-                    </span>
-                    <ChevronRight className="size-4 text-muted-foreground" />
-                  </button>
-                  <Separator />
-                  <button className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors duration-150 hover:bg-muted/60">
-                    <MapPin className="size-4 text-muted-foreground" />
-                    <span className="flex-1">
-                      <span className="block text-sm font-medium">
-                        Store address
-                      </span>
-                      <span className="block text-xs text-muted-foreground">
-                        MODFIRST LLC, 4751 Lydell Road, Hyattsville Maryland
-                        20781-1326, United States
-                      </span>
-                    </span>
-                    <ChevronRight className="size-4 text-muted-foreground" />
-                  </button>
-                </CardContent>
-              </Card>
-
-              <Card className="gap-0 py-0">
-                <div className="px-4 py-3">
-                  <h2 className="text-sm font-semibold">Store defaults</h2>
-                </div>
-                <Separator />
-                <CardContent className="flex flex-col gap-5 p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-medium">Currency display</p>
-                      <p className="text-xs text-muted-foreground">
-                        To manage the currencies customers see, go to Markets
-                      </p>
-                    </div>
-                    <span className="rounded-lg bg-muted px-2.5 py-1 text-sm font-medium whitespace-nowrap">
-                      US Dollar (USD $)
-                    </span>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label>Backup region</Label>
-                    <Select items={{ us: "United States", ca: "Canada", uk: "United Kingdom", pk: "Pakistan" }} defaultValue="us">
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="us">United States</SelectItem>
-                        <SelectItem value="ca">Canada</SelectItem>
-                        <SelectItem value="uk">United Kingdom</SelectItem>
-                        <SelectItem value="pk">Pakistan</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Determines settings for customers outside of your markets
-                    </p>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label>Unit system</Label>
-                      <Select items={{ imperial: "Imperial system", metric: "Metric system" }} defaultValue="imperial">
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="imperial">Imperial system</SelectItem>
-                          <SelectItem value="metric">Metric system</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Default weight unit</Label>
-                      <Select items={{ lb: "Pound (lb)", kg: "Kilogram (kg)", oz: "Ounce (oz)", g: "Gram (g)" }} defaultValue="lb">
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="lb">Pound (lb)</SelectItem>
-                          <SelectItem value="kg">Kilogram (kg)</SelectItem>
-                          <SelectItem value="oz">Ounce (oz)</SelectItem>
-                          <SelectItem value="g">Gram (g)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label>Time zone</Label>
-                    <Select items={{ est: "(GMT-05:00) Eastern Time (US & Canada)", cst: "(GMT-06:00) Central Time (US & Canada)", pst: "(GMT-08:00) Pacific Time (US & Canada)", pkt: "(GMT+05:00) Pakistan Standard Time" }} defaultValue="est">
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="est">
-                          (GMT-05:00) Eastern Time (US &amp; Canada)
-                        </SelectItem>
-                        <SelectItem value="cst">
-                          (GMT-06:00) Central Time (US &amp; Canada)
-                        </SelectItem>
-                        <SelectItem value="pst">
-                          (GMT-08:00) Pacific Time (US &amp; Canada)
-                        </SelectItem>
-                        <SelectItem value="pkt">
-                          (GMT+05:00) Pakistan Standard Time
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Sets the time for when orders and analytics are recorded
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="gap-0 py-0">
-                <div className="px-4 py-3">
-                  <h2 className="text-sm font-semibold">Order ID format</h2>
-                  <p className="text-xs text-muted-foreground">
-                    Shown on the order page, customer pages, and customer order
-                    notifications to identify orders
-                  </p>
-                </div>
-                <Separator />
-                <CardContent className="p-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="prefix">Prefix</Label>
-                      <Input id="prefix" defaultValue="#MF" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="suffix">Suffix</Label>
-                      <Input id="suffix" placeholder="" />
-                    </div>
-                  </div>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    Your order ID will appear as #MF1001, #MF1002, #MF1003, …
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-            )}
+            {section === "general" && <WebsiteSettingsSection />}
           </div>
         </div>
       </div>

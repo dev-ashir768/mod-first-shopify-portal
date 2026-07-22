@@ -991,3 +991,69 @@ export async function globalAdminSearch(
   const p: Json = data?.payload ?? data?.data ?? data ?? {};
   return (p.results ?? p) as AdminSearchResults;
 }
+
+// ─── Website Settings ─────────────────────────────────────────────────────────
+
+export interface WebsiteSettingRow {
+  id?: number | string;
+  site_name?: string;
+  site_tagline?: string;
+  site_description?: string;
+  logo_url?: string | null;
+  favicon_url?: string | null;
+  footer_logo_url?: string | null;
+  primary_color?: string;
+  secondary_color?: string;
+  accent_color?: string;
+  font_primary?: string;
+  font_heading?: string;
+  contact_email?: string;
+  support_email?: string;
+  contact_phone?: string;
+  whatsapp_number?: string;
+  address?: string;
+  city?: string;
+  country_code?: string;
+  postal_code?: string;
+  province_code?: string;
+  business_hours?: string;
+  facebook_url?: string;
+  instagram_url?: string;
+  twitter_url?: string;
+  linkedin_url?: string;
+  youtube_url?: string;
+  tiktok_url?: string;
+  pinterest_url?: string;
+  playstore_url?: string;
+  appstore_url?: string;
+  currency?: string;
+  currency_symbol?: string;
+  tax_percentage?: number | null;
+  default_shipping_fee?: number | null;
+  free_shipping_threshold?: number | null;
+  min_order_amount?: number | null;
+  first_order_discount_enabled?: boolean;
+  first_order_discount_type?: string;
+  first_order_discount_value?: number | null;
+  first_order_max_discount?: number | null;
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string;
+  is_active?: boolean;
+}
+
+export async function fetchWebsiteSettings(): Promise<WebsiteSettingRow | null> {
+  const { data } = await api.post("website-settings/list", { page: 1, limit: 1 });
+  const p: Json = data?.payload ?? data?.data ?? data ?? {};
+  const rows: Json[] = p.rows ?? p.list ?? p.data ?? p.items ?? (Array.isArray(p) ? p : []);
+  if (!rows.length) return null;
+  return rows[0] as WebsiteSettingRow;
+}
+
+export async function updateWebsiteSettings(
+  id: number | string,
+  body: Partial<WebsiteSettingRow>
+): Promise<string> {
+  const { data } = await api.put(`website-settings/${id}`, body);
+  return (data?.message as string) ?? "Settings saved.";
+}
